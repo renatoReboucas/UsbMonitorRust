@@ -23,20 +23,31 @@ de rede.
 
 ### Gerar e executar o `.exe` localmente
 
-Para compilar a versão otimizada sem criar instalador:
+> [!TIP]
+> **Atenção:** `cargo build --release` e a execução do binário são **dois comandos separados**. Não execute os dois na mesma linha sem separador (ou use `;` no PowerShell).
+
+Para compilar a versão otimizada `.exe`:
 
 ```powershell
 cd C:\Users\rebou\Projetos\UsbMonitorRust
 cargo build --release
+```
+
+Depois de concluída a compilação, para rodar o `.exe`:
+
+```powershell
 .\target\release\usb-monitor-rust.exe
 ```
 
-O executável fica em
+Ou em um único comando no PowerShell (separados por `;`):
+
+```powershell
+cargo build --release; .\target\release\usb-monitor-rust.exe
+```
+
+O executável gerado fica em:
 `C:\Users\rebou\Projetos\UsbMonitorRust\target\release\usb-monitor-rust.exe`.
-Ele pode ser iniciado pelo PowerShell, pelo Explorador de Arquivos ou por um
-atalho. O WebView2 Runtime precisa estar instalado no computador em que o app
-será executado. As configurações ficam no diretório de configuração do usuário
-e os CSVs são exportados para `Downloads\UsbMonitorRust`.
+Ele pode ser iniciado pelo PowerShell, pelo Explorador de Arquivos (dando dois cliques) ou por um atalho na Área de Trabalho. O WebView2 Runtime precisa estar instalado no computador em que o app será executado. As configurações ficam no diretório de configuração do usuário (`%APPDATA%`) e os CSVs são exportados para `Downloads\UsbMonitorRust`.
 
 Para gerar um instalador Windows (NSIS/MSI), instale o Tauri CLI v2 e execute:
 
@@ -91,11 +102,11 @@ os intervalos de 10 ms observados no programa original.
 
 Ao iniciar a transmissão, o aplicativo configura a orientação horizontal,
 rasteriza o HTML selecionado na resolução nativa e envia um quadro completo.
-Depois, atualiza a tela a cada minuto; um quadro completo contém 307.200 bytes
-de pixel e o primeiro envio pode levar cerca de 30 segundos. Use **Enviar
-agora** para antecipar uma atualização ou **Parar transmissão** para fechar a
-porta COM. Como a COM é exclusiva no Windows, feche o programa original e
-terminais seriais antes de transmitir.
+Depois, atualiza a tela no intervalo configurado (padrão de 5 segundos, ajustável
+diretamente na tela inicial ou nas configurações para 3s, 5s, 10s, 15s, 30s ou 1 min).
+Um quadro completo contém 307.200 bytes de pixel. Use **Enviar agora** para antecipar
+uma atualização ou **Parar transmissão** para fechar a porta COM. Como a COM é
+exclusiva no Windows, feche o programa original e terminais seriais antes de transmitir.
 
 Os templates HTML executam no WebView local. Para recursos externos usados no
 display, prefira imagens embutidas no próprio HTML/CSS; scripts de templates
