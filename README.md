@@ -49,15 +49,16 @@ O executável gerado fica em:
 `C:\Users\rebou\Projetos\UsbMonitorRust\target\release\usb-monitor-rust.exe`.
 Ele pode ser iniciado pelo PowerShell, pelo Explorador de Arquivos (dando dois cliques) ou por um atalho na Área de Trabalho. O WebView2 Runtime precisa estar instalado no computador em que o app será executado. As configurações ficam no diretório de configuração do usuário (`%APPDATA%`) e os CSVs são exportados para `Downloads\UsbMonitorRust`.
 
-Para gerar um instalador Windows (NSIS/MSI), instale o Tauri CLI v2 e execute:
+Para gerar o instalador do Windows (NSIS/MSI), execute:
 
 ```powershell
-cargo install tauri-cli --version "^2"
-cargo tauri build
+npx @tauri-apps/cli build
 ```
+*(ou instale via Cargo: `cargo install tauri-cli --version "^2"` e use `cargo tauri build`)*
 
-Os instaladores serão gravados em `target\release\bundle`. `target\` é uma
-pasta de build e não deve ser copiada nem versionada junto ao código-fonte.
+Os instaladores serão gravados em:
+- `target\release\bundle\nsis\UsbMonitorRust_0.2.0_x64-setup.exe` (Instalador padrão executável)
+- `target\release\bundle\msi\UsbMonitorRust_0.2.0_x64_en-US.msi` (Pacote MSI do Windows)
 
 ## Recursos
 
