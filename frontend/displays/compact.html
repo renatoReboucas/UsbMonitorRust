@@ -2,20 +2,103 @@
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=480, height=320, initial-scale=1">
     <link rel="stylesheet" href="./compact.css">
     <script src="./runtime.js" defer></script>
-    <title>Layout compacto</title>
+    <title>Layout Compacto · 3.5"</title>
   </head>
   <body>
     <main class="display">
-      <header class="top"><div><b id="computer">Este computador</b><small id="os">Windows</small></div><time id="clock">--:--</time><span id="date"></span></header>
-      <section class="cards">
-        <article class="cpu"><label>CPU · <span id="cpu-frequency">— GHz</span></label><strong id="cpu-usage">N/D</strong><i><b id="cpu-meter"></b></i><small id="cpu-name"></small></article>
-        <article class="ram"><label>MEMÓRIA · <span id="ram-total">N/D</span></label><strong id="ram-usage">N/D</strong><i><b id="ram-meter"></b></i><small id="ram-name"></small></article>
-        <article class="gpu"><label>GPU · <span id="gpu-temperature">TEMP N/D</span></label><strong id="gpu-usage">N/D</strong><i><b id="gpu-meter"></b></i><small id="gpu-name"></small></article>
+      <!-- CABEÇALHO SUPERIOR -->
+      <header class="top-bar">
+        <div class="time-group">
+          <time id="clock">--:--</time>
+          <span id="date" class="date-tag">-- --- ----</span>
+        </div>
+
+        <div class="weather-pill">
+          <span id="weather-icon" class="weather-ico">☁</span>
+          <b id="weather-temperature">—°C</b>
+          <span class="pill-dot">·</span>
+          <span id="weather-city">São Paulo</span>
+        </div>
+
+        <!-- Elementos ocultos mantidos para compatibilidade com runtime -->
+        <span id="computer" style="display:none">Este computador</span>
+        <small id="os" style="display:none">Windows</small>
+        <span id="weather-description" style="display:none">CLIMA</span>
+        <span id="weather-high" style="display:none">↑ —°</span>
+        <span id="weather-low" style="display:none">↓ —°</span>
+        <span id="weather-humidity" style="display:none">◉ —%</span>
+      </header>
+
+      <!-- 3 PILARES VERTICAIS (CPU, RAM, GPU) -->
+      <section class="pillars">
+        <!-- PILAR CPU -->
+        <article class="pillar cpu">
+          <div class="pillar-head">
+            <span class="pillar-tag">CPU</span>
+            <span id="cpu-frequency" class="pillar-spec">— GHz</span>
+          </div>
+          <div class="pillar-hero">
+            <strong id="cpu-usage">N/D</strong>
+          </div>
+          <div class="meter-box">
+            <i class="meter-bar"><b id="cpu-meter"></b></i>
+          </div>
+          <small id="cpu-name" class="pillar-foot">Processador</small>
+        </article>
+
+        <!-- PILAR RAM -->
+        <article class="pillar ram">
+          <div class="pillar-head">
+            <span class="pillar-tag">RAM</span>
+            <span id="ram-total" class="pillar-spec">N/D</span>
+          </div>
+          <div class="pillar-hero">
+            <strong id="ram-usage">N/D</strong>
+          </div>
+          <div class="meter-box">
+            <i class="meter-bar"><b id="ram-meter"></b></i>
+          </div>
+          <small id="ram-name" class="pillar-foot">Memória do sistema</small>
+        </article>
+
+        <!-- PILAR GPU -->
+        <article class="pillar gpu">
+          <div class="pillar-head">
+            <span class="pillar-tag">GPU</span>
+            <span id="gpu-temperature" class="pillar-spec">TEMP N/D</span>
+          </div>
+          <div class="pillar-hero">
+            <strong id="gpu-usage">N/D</strong>
+          </div>
+          <div class="meter-box">
+            <i class="meter-bar"><b id="gpu-meter"></b></i>
+          </div>
+          <small id="gpu-name" class="pillar-foot">GPU indisponível</small>
+        </article>
       </section>
-      <footer><span id="weather-icon">☁</span><b id="weather-temperature">—°C</b><span id="weather-description">CLIMA</span><span id="weather-city">São Paulo</span><span id="weather-high">↑ —°</span><span id="weather-low">↓ —°</span><span id="weather-humidity">◉ —%</span><span id="uptime">—</span><span id="upload">↑ —</span><span id="download">↓ —</span><span id="network">—</span><span id="vram">VRAM —</span></footer>
+
+      <!-- RODAPÉ COMPACTO -->
+      <footer class="bottom-bar">
+        <div class="foot-item">
+          <span class="foot-label">UPTIME</span>
+          <b id="uptime">—</b>
+        </div>
+        <div class="foot-item net-item">
+          <span class="foot-label">REDE</span>
+          <div class="net-flow">
+            <span id="upload">↑ —</span>
+            <span id="download">↓ —</span>
+          </div>
+        </div>
+        <div class="foot-item">
+          <span class="foot-label">VRAM</span>
+          <b id="vram">—</b>
+        </div>
+        <span id="network" style="display:none">—</span>
+      </footer>
     </main>
   </body>
 </html>

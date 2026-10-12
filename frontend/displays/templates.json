@@ -2,16 +2,21 @@
   {
     "id": "reference",
     "name": "Referência · azul",
-    "description": "Relógio, clima e cartões empilhados no layout da foto."
+    "description": "Cockpit digital com relógio hero 44px, clima e cartões de telemetria de alta legibilidade para 3,5″."
   },
   {
     "id": "compact",
     "name": "Compacto · neon",
-    "description": "Cabeçalho curto e cartões de métricas em grade."
+    "description": "3 pilares verticais com números gigantes de 42px e leitura instantânea à distância."
   },
   {
     "id": "minimal",
     "name": "Minimal · claro",
-    "description": "Layout claro com tipografia e indicadores simplificados."
+    "description": "Design claro de altíssimo contraste (WCAG AAA), tipografia suíça nítida e cartões brancos."
+  },
+  {
+    "id": "hud",
+    "name": "HUD · Cyberpunk OLED",
+    "description": "Preto absoluto OLED (#000000), instrumentação neon com números de 40px e zero brilho residual."
   }
 ]

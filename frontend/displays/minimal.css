@@ -1,14 +1,266 @@
-*{box-sizing:border-box}
-:root{color-scheme:light;--base:#eff1f5;--surface:#e6e9ef;--border:#ccd0da;--text:#4c4f69;--muted:#6c6f85;--accent:#8839ef;--cpu:#40a02b;--ram:#ea76cb;--gpu:#1e66f5;font-family:"Segoe UI",Arial,sans-serif}
-body{width:100vw;height:100vh;margin:0;overflow:hidden;background:var(--base);color:var(--text)}
-.display{display:grid;width:100%;height:100%;grid-template-rows:auto 1fr auto;gap:5%;padding:5%}
-header{display:flex;align-items:center;gap:14px;padding-bottom:2%;border-bottom:2px solid var(--border)}
-header div{min-width:0;flex:1}header small,header b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}header small{color:var(--muted);font-size:clamp(6px,1vw,9px);letter-spacing:.14em}header b{font-size:clamp(11px,2vw,18px)}
-header time{color:var(--accent);font-size:clamp(24px,6.5vw,58px);font-weight:750}header>span{color:var(--muted);font-size:clamp(7px,1.2vw,11px);text-transform:uppercase}
-.reading{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3%}.reading article{display:flex;min-width:0;flex-direction:column;justify-content:center;gap:9px;padding:8%;border:1px solid var(--border);border-radius:8px;background:var(--surface)}
-.reading article:nth-child(1){--tone:var(--cpu)}.reading article:nth-child(2){--tone:var(--ram)}.reading article:nth-child(3){--tone:var(--gpu)}
-.reading label,.reading small{overflow:hidden;color:var(--muted);font-size:clamp(7px,1vw,10px);text-overflow:ellipsis;white-space:nowrap}.reading label{display:flex;justify-content:space-between;gap:4px}
-.reading strong{color:var(--tone);font-size:clamp(26px,6.5vw,58px);line-height:1}
-.reading i{height:6px;overflow:hidden;border-radius:4px;background:#4c4f6924}.reading i b{display:block;width:0;height:100%;background:var(--tone)}
-footer{display:flex;align-items:center;justify-content:space-between;gap:7px;overflow:hidden;padding:2.5%;border:1px solid var(--border);border-radius:8px;background:#e6e9ef;color:var(--muted);font-size:clamp(6px,.9vw,9px);white-space:nowrap}
-footer span:first-child{display:grid;grid-template-columns:auto auto;align-items:center;gap:3px}footer span:first-child b:first-child{grid-row:span 2;color:var(--accent);font-size:clamp(15px,3vw,26px)}footer span:first-child small{grid-column:2}
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: light;
+  --base: #f1f5f9;
+  --surface: #ffffff;
+  --border: #cbd5e1;
+  --text: #0f172a;
+  --muted: #475569;
+  --accent: #4f46e5;
+  --cpu: #16a34a;
+  --ram: #c026d3;
+  --gpu: #0284c7;
+  --warm: #d97706;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-variant-numeric: tabular-nums lining-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+html, body {
+  width: 480px;
+  height: 320px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: var(--base);
+  color: var(--text);
+  user-select: none;
+}
+
+.display {
+  display: grid;
+  width: 480px;
+  height: 320px;
+  grid-template-rows: 38px 216px 34px;
+  gap: 8px;
+  padding: 8px;
+}
+
+/* ==========================================================================
+   CABEÇALHO MINIMALISTA
+   ========================================================================== */
+.minimal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  height: 38px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.time-block {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#clock {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.date-chip {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.weather-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8fafc;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.weather-chip span:first-child {
+  font-size: 15px;
+  color: var(--warm);
+}
+
+#weather-temperature {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.sep {
+  color: var(--border);
+  font-weight: 700;
+}
+
+#weather-city {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   3 CARTÕES DE LEITURA
+   ========================================================================== */
+.reading {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  height: 216px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px 10px 8px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--tone);
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+}
+
+.card.cpu { --tone: var(--cpu); }
+.card.ram { --tone: var(--ram); }
+.card.gpu { --tone: var(--gpu); }
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.card-tag {
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #ffffff;
+  background: var(--tone);
+  border-radius: 4px;
+  padding: 2px 7px;
+}
+
+.card-spec {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-val-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.card-val-row strong {
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 0.95;
+  color: var(--tone);
+  letter-spacing: -0.03em;
+}
+
+.meter-bar {
+  width: 100%;
+  height: 9px;
+  background: #e2e8f0;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.meter-bar i {
+  display: block;
+  width: 0%;
+  height: 100%;
+  background: var(--tone);
+  border-radius: 5px;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-foot {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--muted);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-top: 4px;
+}
+
+/* ==========================================================================
+   RODAPÉ MINIMALISTA
+   ========================================================================== */
+.minimal-footer {
+  display: grid;
+  grid-template-columns: 1.1fr 1.6fr 1.3fr;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  height: 34px;
+  padding: 0 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.foot-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 100%;
+  padding: 0 8px;
+  border-right: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.foot-cell:last-child {
+  border-right: 0;
+}
+
+.foot-title {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+
+.foot-cell b {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.net-speeds {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.net-speeds span {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+#upload { color: #0284c7; }
+#download { color: #d97706; }
