@@ -2,7 +2,7 @@ const invoke = window.__TAURI__?.core?.invoke;
 const templateIdPattern = /^[a-z0-9-]{1,48}$/;
 const DISPLAY_WIDTH = 480;
 const DISPLAY_HEIGHT = 320;
-const DISPLAY_REFRESH_MS = 60_000;
+const DISPLAY_REFRESH_MS = 30_000;
 const palettes = {
   latte: {
     label: "Latte",
@@ -553,7 +553,13 @@ async function loadCaptureFrame() {
 
   sendDisplayState();
   await captureFrame.contentDocument?.fonts?.ready;
-  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  // Wait for the *iframe's* rendering pipeline (not the parent's) so the
+  // postMessage with fresh metrics is fully processed and painted.
+  const frameWindow = captureFrame.contentWindow;
+  await new Promise((resolve) => {
+    const raf = frameWindow?.requestAnimationFrame?.bind(frameWindow) || requestAnimationFrame;
+    raf(() => raf(resolve));
+  });
   return captureFrame;
 }
 
@@ -566,37 +572,76 @@ async function captureDisplayPng() {
   const bodyClone = body.cloneNode(true);
   copyComputedStyles(body, bodyClone);
   bodyClone.querySelectorAll("script").forEach((script) => script.remove());
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${DISPLAY_WIDTH}" height="${DISPLAY_HEIGHT}" viewBox="0 0 ${DISPLAY_WIDTH} ${DISPLAY_HEIGHT}"><foreignObject x="0" y="0" width="${DISPLAY_WIDTH}" height="${DISPLAY_HEIGHT}">${new XMLSerializer().serializeToString(bodyClone)}</foreignObject></svg>`;
-  const svgUrl = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
-  try {
-    const image = new Image();
-    image.src = svgUrl;
-    await image.decode();
-    const canvas = document.createElement("canvas");
-    canvas.width = DISPLAY_WIDTH;
-    canvas.height = DISPLAY_HEIGHT;
-    const context = canvas.getContext("2d", { alpha: false });
-    if (!context) throw new Error("Não foi possível criar a imagem para o display.");
 
-    const background = frame.contentWindow.getComputedStyle(body).backgroundColor;
-    context.fillStyle = background === "rgba(0, 0, 0, 0)" ? "#000000" : background;
-    context.fillRect(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
-    context.filter = getComputedStyle($(".screen")).filter;
-    if ($(".screen").style.transform === "rotate(180deg)") {
-      context.translate(DISPLAY_WIDTH, DISPLAY_HEIGHT);
-      context.rotate(Math.PI);
+  // Collect all CSS rules from the iframe's stylesheets and inline them
+  // into a <style> element so the SVG foreignObject is fully self-contained.
+  let inlinedCss = "";
+  try {
+    for (const sheet of frameDocument.styleSheets) {
+      try {
+        for (const rule of sheet.cssRules) {
+          inlinedCss += rule.cssText + "\n";
+        }
+      } catch (_ignored) {
+        // Cross-origin sheets can't be read; skip them (styles are already
+        // baked into the clone via copyComputedStyles).
+      }
     }
-    context.drawImage(image, 0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
-    const png = await new Promise((resolve, reject) => {
-      canvas.toBlob((blob) => {
-        if (blob) resolve(blob);
-        else reject(new Error("Não foi possível codificar a imagem do display."));
-      }, "image/png");
-    });
-    return [...new Uint8Array(await png.arrayBuffer())];
-  } finally {
-    URL.revokeObjectURL(svgUrl);
+  } catch (_ignored) { /* no stylesheets at all */ }
+
+  // Also capture CSS custom properties (variables) set on :root / documentElement
+  const rootStyle = frameDocument.defaultView.getComputedStyle(frameDocument.documentElement);
+  let rootVars = "";
+  for (let i = 0; i < rootStyle.length; i++) {
+    const prop = rootStyle.item(i);
+    if (prop.startsWith("--")) {
+      rootVars += `${prop}:${rootStyle.getPropertyValue(prop)};`;
+    }
   }
+  if (rootVars) {
+    inlinedCss += `:root{${rootVars}}\n`;
+  }
+
+  if (inlinedCss) {
+    const styleEl = frameDocument.createElementNS("http://www.w3.org/1999/xhtml", "style");
+    styleEl.textContent = inlinedCss;
+    bodyClone.insertBefore(styleEl, bodyClone.firstChild);
+  }
+
+  const serialized = new XMLSerializer().serializeToString(bodyClone);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${DISPLAY_WIDTH}" height="${DISPLAY_HEIGHT}" viewBox="0 0 ${DISPLAY_WIDTH} ${DISPLAY_HEIGHT}"><foreignObject x="0" y="0" width="${DISPLAY_WIDTH}" height="${DISPLAY_HEIGHT}">${serialized}</foreignObject></svg>`;
+
+  // Use a data: URL instead of a blob: URL to avoid tainting the canvas.
+  // Blob URLs with SVG foreignObject are treated as cross-origin by Chromium,
+  // but data: URLs with properly serialized self-contained SVG are not.
+  const svgDataUrl = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  const image = new Image();
+  image.crossOrigin = "anonymous";
+  image.src = svgDataUrl;
+  await image.decode();
+
+  const canvas = document.createElement("canvas");
+  canvas.width = DISPLAY_WIDTH;
+  canvas.height = DISPLAY_HEIGHT;
+  const context = canvas.getContext("2d", { alpha: false });
+  if (!context) throw new Error("Não foi possível criar a imagem para o display.");
+
+  const background = frame.contentWindow.getComputedStyle(body).backgroundColor;
+  context.fillStyle = background === "rgba(0, 0, 0, 0)" ? "#000000" : background;
+  context.fillRect(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+  context.filter = getComputedStyle($(".screen")).filter;
+  if ($(".screen").style.transform === "rotate(180deg)") {
+    context.translate(DISPLAY_WIDTH, DISPLAY_HEIGHT);
+    context.rotate(Math.PI);
+  }
+  context.drawImage(image, 0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+  const png = await new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error("Não foi possível codificar a imagem do display."));
+    }, "image/png");
+  });
+  return [...new Uint8Array(await png.arrayBuffer())];
 }
 
 async function sendDisplayFrame() {
@@ -606,20 +651,25 @@ async function sendDisplayFrame() {
   try {
     setTransmissionState("Preparando e capturando o layout do display…");
     const imagePng = await captureDisplayPng();
-    setTransmissionState("Enviando quadro completo para o display. Isso pode levar cerca de 30 segundos…");
+    setTransmissionState("Enviando quadro completo para o display…");
     const result = await invoke("send_display_frame", { imagePng });
-    setTransmissionState(`Tela enviada com sucesso (${result.width} × ${result.height}). A próxima atualização será automática em 1 minuto.`, "success");
-    notice(`Layout enviado ao display (${result.width} × ${result.height}, RGB565). Próxima atualização automática em 1 minuto.`);
+    const seconds = Math.round(DISPLAY_REFRESH_MS / 1000);
+    setTransmissionState(`Tela enviada com sucesso (${result.width} × ${result.height}). Próxima atualização em ${seconds} s.`, "success");
+    notice(`Layout enviado ao display (${result.width} × ${result.height}, RGB565). Próxima atualização em ${seconds} s.`);
     return result;
   } catch (error) {
     setTransmissionState(`Falha na transmissão: ${error}`, "error");
-    if (displayTransmitting) {
-      clearInterval(displayRefreshTimer);
-      displayRefreshTimer = null;
-      displayTransmitting = false;
-    }
+    // Check if the serial port is still alive. Only stop auto-refresh when
+    // the port has been lost, not on transient capture/rendering errors —
+    // those will be retried at the next interval.
     try {
-      updateStatus(await invoke("get_device_status"));
+      const status = await invoke("get_device_status");
+      updateStatus(status);
+      if (displayTransmitting && !status.port_open) {
+        clearInterval(displayRefreshTimer);
+        displayRefreshTimer = null;
+        displayTransmitting = false;
+      }
     } catch (statusError) {
       notice(`Falha ao transmitir: ${error}. Não foi possível confirmar o estado da porta: ${statusError}`, "error");
       throw error;

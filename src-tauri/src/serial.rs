@@ -14,7 +14,7 @@ const DISPLAY_WIDTH: u32 = 480;
 const DISPLAY_HEIGHT: u32 = 320;
 const DISPLAY_BITMAP_COMMAND: u8 = 197;
 const SET_ORIENTATION_COMMAND: u8 = 121;
-const LANDSCAPE_ORIENTATION: u8 = 2;
+const LANDSCAPE_ORIENTATION: u8 = 3;
 const RGB565_PIXEL_BYTES: usize = 2;
 const WRITE_CHUNK_BYTES: usize = DISPLAY_WIDTH as usize * 8;
 
@@ -292,7 +292,7 @@ mod tests {
     fn orientation_command_declares_landscape_resolution() {
         assert_eq!(
             orientation_command(),
-            [0, 0, 0, 0, 0, 121, 102, 1, 224, 1, 64, 0, 0, 0, 0, 0]
+            [0, 0, 0, 0, 0, 121, 103, 1, 224, 1, 64, 0, 0, 0, 0, 0]
         );
     }
 
