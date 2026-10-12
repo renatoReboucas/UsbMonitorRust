@@ -62,9 +62,9 @@ pasta de build e não deve ser copiada nem versionada junto ao código-fonte.
   exibem CPU, RAM, GPU, temperatura disponível, rede e uptime. “Liberar porta
   serial” fecha uma COM aberta por esta instância, mesmo com a janela oculta.
 - Exportação das amostras para CSV em `Downloads\UsbMonitorRust`.
-- Detecção opcional do adaptador USB serial `VID_1A86:PID_5722`, com abertura e
-  fechamento explícitos.
-- Prévia do dashboard em proporção 800 × 450, com CPU, RAM, GPU, rede e clima;
+- Detecção do adaptador USB serial `VID_1A86:PID_5722`, com transmissão real
+  do layout selecionado para o display.
+- Prévia e envio do dashboard em 480 × 320, com CPU, RAM, GPU, rede e clima;
   cidade editável no formato `Cidade, Estado, País`.
 - Layouts da prévia definidos por HTML/CSS em `frontend\displays`; selecione
   um layout na página **Layouts HTML** ou na configuração rápida do Monitor.
@@ -80,13 +80,26 @@ pasta de build e não deve ser copiada nem versionada junto ao código-fonte.
 - Temas de interface Catppuccin Latte, Frappé, Macchiato e Mocha, com seleção
   persistente nas configurações.
 
-## Limites conhecidos da engenharia reversa
+## Display físico e transmissão serial
 
-O código anterior deste projeto abria a serial, mas não enviava nem recebia
-bytes. A interface atual mantém esse limite de segurança: não altera o display
-físico. O protocolo, baud rate correto e formato das telas ainda precisam de
-captura passiva e confirmação antes de implementar transmissão. A identificação
-USB, isoladamente, não comprova o protocolo.
+A rotina serial do programa original foi decompilada localmente para confirmar
+seu comportamento: 115200 baud, 8N1, DTR/RTS ativados e sem handshake; a
+orientação usa o comando 121 e a imagem usa o comando 197, com pixels RGB565 em
+little-endian. A resolução transmitida por esta interface é 480 × 320, igual
+ao layout HTML selecionado. Entre o comando de imagem e os pixels são mantidos
+os intervalos de 10 ms observados no programa original.
+
+Ao iniciar a transmissão, o aplicativo configura a orientação horizontal,
+rasteriza o HTML selecionado na resolução nativa e envia um quadro completo.
+Depois, atualiza a tela a cada minuto; um quadro completo contém 307.200 bytes
+de pixel e o primeiro envio pode levar cerca de 30 segundos. Use **Enviar
+agora** para antecipar uma atualização ou **Parar transmissão** para fechar a
+porta COM. Como a COM é exclusiva no Windows, feche o programa original e
+terminais seriais antes de transmitir.
+
+Os templates HTML executam no WebView local. Para recursos externos usados no
+display, prefira imagens embutidas no próprio HTML/CSS; scripts de templates
+customizados são executados localmente no aplicativo.
 
 Se o Windows informar que COM3 está ocupada/acesso negado, verifique também o
 programa original do display, terminais seriais e outras instâncias deste app.
@@ -94,14 +107,14 @@ Fechar a janela do UsbMonitor apenas o oculta na bandeja; use “Liberar porta
 serial” para fechar a conexão da instância atual ou “Encerrar” para sair.
 
 Esta versão obtém métricas de GPU pela NVML NVIDIA. Métricas equivalentes de
-GPU Intel/AMD e temperatura da CPU não foram implementadas. Brilho, tema,
-paleta e rotação são preferências/previsualização da interface, não comandos
-enviados ao display.
+GPU Intel/AMD e temperatura da CPU não foram implementadas. O brilho é aplicado
+à imagem transmitida, mas não altera a iluminação física do painel; a rotação
+de 180° é aplicada aos pixels enviados.
 
-Os HTMLs em `frontend\displays` são layouts de pré-visualização executados
-localmente no WebView; eles não são enviados à tela USB como páginas web. O
-protocolo serial do equipamento ainda precisa ser confirmado. Só adicione
-arquivos HTML/JavaScript de layouts que você mesmo criou ou revisou.
+Os HTMLs em `frontend\displays` são renderizados localmente no WebView e a
+imagem resultante é enviada à tela USB; páginas web não são executadas no
+firmware do display. Só adicione arquivos HTML/JavaScript de layouts que você
+mesmo criou ou revisou.
 
 Consulte `RETOMADA.md` para os achados do código substituído, o estado da
 engenharia reversa do programa original e as evidências/limitações conhecidas.

@@ -51,6 +51,17 @@ fn connect_serial(
 }
 
 #[tauri::command]
+async fn send_display_frame(
+    image_png: Vec<u8>,
+    state: State<'_, SerialState>,
+) -> Result<serial::FrameSendResult, String> {
+    let state = state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || serial::send_png_frame(&state, &image_png))
+        .await
+        .map_err(|error| format!("A tarefa de transmissão do display falhou: {error}"))?
+}
+
+#[tauri::command]
 fn disconnect_serial(state: State<'_, SerialState>) -> Result<DeviceStatus, String> {
     serial::disconnect(&state)?;
     serial::status(&state)
@@ -132,6 +143,7 @@ fn main() {
             get_device_status,
             connect_serial,
             disconnect_serial,
+            send_display_frame,
             load_config,
             save_config,
             export_logs

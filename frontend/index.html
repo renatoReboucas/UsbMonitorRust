@@ -29,9 +29,9 @@
           <div class="heading"><div><label>VISÃO GERAL</label><h1>Monitor</h1><p>Métricas em tempo real deste computador.</p></div><span class="live"><i id="main-dot"></i><span id="main-status">Verificando dispositivo</span></span></div>
           <div id="notice" class="notice" role="status" hidden></div>
           <section class="preview panel main-display-preview" aria-label="Prévia fiel da tela 3,5 polegadas">
-            <div class="display-preview-heading"><div><label>LAYOUT DO DISPLAY · 800 × 450</label><h2>Tela 3,5″</h2></div><span class="tag" id="weather-city-label">SÃO PAULO, BRASIL</span></div>
+            <div class="display-preview-heading"><div><label>LAYOUT DO DISPLAY · 480 × 320</label><h2>Tela 3,5″</h2></div><span class="tag" id="weather-city-label">SÃO PAULO, BRASIL</span></div>
             <div class="screen"><iframe id="display-frame" title="Prévia do layout HTML do display" sandbox="allow-scripts allow-same-origin"></iframe></div>
-            <div class="display-preview-caption"><span>↗</span><p>Prévia ao vivo do layout da foto. O envio para a tela física depende da confirmação do protocolo serial.</p></div>
+            <div class="display-preview-caption"><span>↗</span><p>Prévia ao vivo no formato nativo do display. O layout selecionado é rasterizado e enviado à porta COM em RGB565.</p></div>
           </section>
           <section class="live-metrics" aria-label="Métricas atuais do computador">
             <article class="live-metric-card cpu-live-card">
@@ -63,24 +63,25 @@
             <div class="device-info"><span class="device-icon">▣</span><div><label>DISPLAY USB 3,5″</label><h2 id="device-name">Procurando dispositivo…</h2><p id="device-detail">Identificação USB: VID_1A86 · PID_5722</p></div></div>
             <div class="device-actions">
               <label class="field"><span>PORTA</span><select id="port-select" disabled><option>Procurando…</option></select></label>
-              <label class="field"><span>VELOCIDADE SERIAL</span><select id="baud"><option value="115200">115200 baud</option><option value="9600">9600 baud</option><option value="57600">57600 baud</option><option value="38400">38400 baud</option><option value="19200">19200 baud</option></select></label>
-              <button class="primary" id="connect" disabled>Abrir serial</button>
+              <div class="serial-mode"><span>PROTOCOLO</span><strong>115200 baud · 8N1</strong><small>DTR/RTS ativos · sem handshake</small></div>
+              <button class="primary" id="connect" disabled>Transmitir para display</button>
+              <button class="secondary" id="send-now" disabled>Enviar agora</button>
             </div>
-            <small class="serial-hint">“Abrir porta COM” apenas adquire a conexão; o envio de dados ainda não está implementado sem confirmação do protocolo. Se a porta estiver ocupada, use “Liberar porta serial” no menu da bandeja.</small>
+            <small class="serial-hint">A primeira tela pode levar cerca de 30 segundos; depois ela é atualizada a cada minuto. Feche o programa original do display se ele estiver usando a mesma porta COM.</small>
           </section>
           <div class="section-heading"><div><label>PERSONALIZAÇÃO</label><h2>Configuração rápida</h2></div><button class="link" data-go="settings">Todas as opções →</button></div>
           <div class="quick-grid">
             <section class="panel quick"><span class="tile-icon cyan">◈</span><label class="field"><span>LAYOUT HTML DO DISPLAY</span><select id="quick-theme"></select></label><button class="subtle" data-go="themes">Explorar layouts</button></section>
-            <section class="panel quick"><span class="tile-icon purple">◐</span><label class="field"><span>BRILHO <output id="brightness-value">80%</output></span><input id="brightness" type="range" min="0" max="100" value="80"></label><small>Pré-visualização da configuração.</small></section>
-            <section class="panel quick"><span class="tile-icon blue">⟳</span><label class="field"><span>ROTAÇÃO DA TELA</span><select id="rotation"><option value="0">0° · Normal</option><option value="180">180° · Invertida</option></select></label><small>A orientação é aplicada pelo tema.</small></section>
+            <section class="panel quick"><span class="tile-icon purple">◐</span><label class="field"><span>BRILHO <output id="brightness-value">80%</output></span><input id="brightness" type="range" min="0" max="100" value="80"></label><small>Aplica à imagem, não à iluminação do painel.</small></section>
+            <section class="panel quick"><span class="tile-icon blue">⟳</span><label class="field"><span>ROTAÇÃO DA TELA</span><select id="rotation"><option value="0">0° · Normal</option><option value="180">180° · Invertida</option></select></label><small>Rotação aplicada também ao quadro enviado.</small></section>
           </div>
           <div class="section-heading"><div><label>TELA SECUNDÁRIA</label><h2>Pré-visualização</h2></div><span class="tag">TEMA DO DISPLAY</span></div>
-          <footer>Interface para o display Turing 3,5″ <span>·</span> As métricas são reais; o envio de telas ao display ainda não está ativo.</footer>
+          <footer>Interface para o display Turing 3,5″ <span>·</span> Transmissão serial do layout HTML ativo.</footer>
         </section>
         <section class="page" id="page-themes">
-          <div class="heading"><div><label>APARÊNCIA</label><h1>Layouts HTML</h1><p>Escolha um arquivo HTML para a prévia 800 × 450 do display.</p></div></div>
+          <div class="heading"><div><label>APARÊNCIA</label><h1>Layouts HTML</h1><p>Escolha um arquivo HTML para a prévia 480 × 320 do display.</p></div></div>
           <div id="theme-grid" class="theme-grid"></div>
-          <section class="panel template-help"><b>Como criar um layout</b><p>Crie um arquivo HTML em <code>frontend/displays/</code> e registre o identificador e o nome em <code>frontend/displays/templates.json</code>. Use <code>reference.html</code> como exemplo e reutilize <code>runtime.js</code> para receber as métricas ao vivo. Depois reinicie o app e selecione o novo layout.</p><p>Esses arquivos definem a prévia HTML. O envio à tela física continua dependendo da confirmação do protocolo serial.</p></section>
+          <section class="panel template-help"><b>Como criar um layout</b><p>Crie um arquivo HTML em <code>frontend/displays/</code> e registre o identificador e o nome em <code>frontend/displays/templates.json</code>. Use <code>reference.html</code> como exemplo e reutilize <code>runtime.js</code> para receber as métricas ao vivo. Depois reinicie o app e selecione o novo layout.</p><p>O HTML selecionado é rasterizado no tamanho 480 × 320 e enviado ao display; para imagens em CSS, prefira recursos embutidos no próprio arquivo.</p></section>
         </section>
         <section class="page" id="page-settings">
           <div class="heading"><div><label>PREFERÊNCIAS</label><h1>Configurações</h1><p>Ajuste as opções gerais do Turing Smart Screen.</p></div></div>

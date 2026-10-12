@@ -28,32 +28,36 @@ nova análise do binário.
 ### Programa original — resultados registrados anteriormente
 
 As anotações anteriores identificavam `UsbMonitor.exe` como PE x86-64/.NET e
-registravam uma inspeção estática incompleta: metadados/recursos inconsistentes
-impediram recuperar métodos CIL. Strings apontavam para WinForms, `SerialPort`,
-USB HID, sensores e configurações de baud rate, mas não provavam o fluxo real,
-o transporte usado para comandar o display ou o protocolo. A análise anotada
-não executou o programa e não observou sua interface em tempo real.
+registravam uma inspeção estática incompleta. Depois foi instalado o SDK .NET 9
+e ILSpy 9.1 no perfil do usuário para decompilar localmente o executável. A
+rotina serial recuperada confirma 115200 baud, 8N1, DTR/RTS ativos e ausência
+de handshake; o enquadramento de imagem usa o comando 197, com pixels RGB565,
+e intervalos de 10 ms antes/depois do payload. A orientação é enviada pelo
+comando 121. O binário foi analisado estaticamente; o hardware não foi usado
+para validar a transmissão.
 
 O material de referência descrito nas notas incluía 38 artes de tema, imagens
 de guia/configuração, opções de rotação, brilho, sensores e inicialização
-automática. Essas fontes orientam a prévia, mas não comprovam os comandos
-enviados ao hardware. O adaptador observado no Windows era `COM3`, com
-`VID_1A86&PID_5722`; isso não comprova baud rate ou protocolo.
+automática. As artes incluem perfis paisagem e retrato; a interface desta
+implementação envia o layout paisagem em 480 × 320. O adaptador observado no
+Windows era `COM3`, com `VID_1A86&PID_5722`; o identificador foi usado junto
+com os métodos recuperados, não como prova isolada do protocolo.
 
 ## Arquitetura atual
 
 - `src-tauri\src\main.rs`: inicialização Tauri, comandos e estado compartilhado.
 - `cpu.rs`, `ram.rs`, `gpu.rs`, `telemetry.rs`: coleta local de métricas e
   histórico circular de até 3.600 amostras (uma hora).
-- `serial.rs`: enumeração, validação e abertura/fechamento explícitos da porta;
-  nenhuma transmissão ou leitura serial.
+- `serial.rs`: enumeração e validação da porta, configuração serial compatível
+  com o executável original, rasterização PNG/RGB565 e transmissão de quadros.
 - `config.rs`: validação e persistência de preferências JSON no diretório de
   configuração do aplicativo, com arquivo temporário e backup de recuperação.
 - `startup.rs`: integração de inicialização automática do Windows.
 - `tray.rs`: ícone e menu da bandeja; fechar a janela oculta o app.
-- `frontend`: telas HTML/CSS/JavaScript e layouts 800 × 450 carregados em
+- `frontend`: telas HTML/CSS/JavaScript e layouts 480 × 320 carregados em
   `iframe`; os layouts estão em `frontend\displays`, registrados em
-  `templates.json` e recebem as métricas via `postMessage`.
+  `templates.json`, recebem as métricas via `postMessage` e podem ser enviados
+  como quadros RGB565 ao display.
 - `weather.rs`: consulta Open-Meteo para geocodificação e previsão atual, com
   cache de 15 minutos e cidade/região editáveis; o padrão é São Paulo, SP.
 - `tray.rs` também atualiza CPU, RAM, GPU, temperatura disponível, rede e uptime
@@ -66,22 +70,22 @@ enviados ao hardware. O adaptador observado no Windows era `COM3`, com
 
 ## Limites ainda abertos
 
-- O protocolo, o baud rate, o enquadramento e o transporte efetivo do display
-  continuam desconhecidos. Não enviar comandos experimentais.
+- O protocolo foi confirmado pela descompilação estática do programa original,
+  mas ainda falta validar um quadro no hardware físico. A transmissão usa o
+  perfil paisagem 480 × 320 do layout atual.
 - A GPU é consultada por NVML NVIDIA; métricas de GPU AMD/Intel e temperatura
   da CPU ainda não estão disponíveis nesta versão. A previsão é de fonte
   pública Open-Meteo; a cidade configurada é enviada para geocodificação e
   previsão, mas nenhuma telemetria do PC é transmitida.
 - O gráfico mantém amostras em memória por até uma hora e mostra no máximo os
   dois minutos mais recentes. O histórico é reiniciado ao fechar o aplicativo.
-- Tema, brilho, rotação e rótulos personalizados alteram a prévia/configuração,
-  não o estado físico do display.
-- Os layouts HTML são prévias no WebView. Eles não substituem nem são
-  transmitidos ao protocolo do display USB.
+- Brilho é aplicado aos pixels, não à iluminação do painel; a rotação de 180°
+  também é aplicada à imagem transmitida.
 
 ## Verificação
 
-Executar `cargo fmt --check`, `cargo test` e `node --check frontend\app.js`.
-Os testes cobrem validação de configuração, identidade USB observada, cálculo
-de taxa de rede e escape CSV. O build/execução do app Tauri requer o toolchain
-Windows e WebView2 Runtime.
+Executar `cargo fmt --check`, `cargo test`, Clippy e `node --check
+frontend\app.js`. Os testes cobrem validação de configuração, identidade USB,
+cabeçalho de quadro, orientação, conversão RGB565 e validação da imagem PNG,
+além de cálculo de taxa de rede e escape CSV. O build/execução do app Tauri
+requer o toolchain Windows e WebView2 Runtime.

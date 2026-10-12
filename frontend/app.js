@@ -1,5 +1,8 @@
 const invoke = window.__TAURI__?.core?.invoke;
 const templateIdPattern = /^[a-z0-9-]{1,48}$/;
+const DISPLAY_WIDTH = 480;
+const DISPLAY_HEIGHT = 320;
+const DISPLAY_REFRESH_MS = 60_000;
 const palettes = {
   latte: {
     label: "Latte",
@@ -54,6 +57,12 @@ let latestMetrics = null;
 let currentWeather = null;
 let displayClock = { time: "--:--", date: "" };
 let templateLoadRequest = 0;
+let captureTemplateLoadRequest = 0;
+let captureFrame = null;
+let currentDeviceStatus = null;
+let displayRefreshTimer = null;
+let displayTransmitting = false;
+let frameSendRunning = false;
 
 function formatGb(bytes) {
   return (bytes / (1024 ** 3)).toFixed(1);
@@ -75,9 +84,7 @@ function setPage(name) {
 }
 
 function sendDisplayState() {
-  const frame = $("#display-frame");
-  if (!frame?.contentWindow) return;
-  frame.contentWindow.postMessage({
+  const message = {
     type: "usbmonitor:state",
     payload: {
       metrics: latestMetrics || {},
@@ -86,7 +93,12 @@ function sendDisplayState() {
       clock: displayClock,
       palette: settings.palette,
     },
-  }, window.location.origin);
+  };
+  for (const frame of [$("#display-frame"), captureFrame]) {
+    if (frame?.contentWindow) {
+      frame.contentWindow.postMessage(message, window.location.origin);
+    }
+  }
 }
 
 async function chooseTheme(id) {
@@ -174,7 +186,7 @@ async function renderThemes() {
     image.classList.add(`template-${template.id}`);
     const badge = document.createElement("span");
     badge.className = "badge";
-    badge.textContent = "HTML · 800 × 450";
+    badge.textContent = "HTML · 480 × 320";
     image.append(badge);
     const title = document.createElement("strong");
     title.textContent = template.name;
@@ -187,16 +199,32 @@ async function renderThemes() {
 }
 
 function updateStatus(data) {
+  currentDeviceStatus = data;
   const connected = data.connected;
   $("#side-dot").classList.toggle("online", connected);
   $("#main-dot").classList.toggle("online", connected);
   $("#side-status").textContent = data.port_open ? "Porta serial aberta" : connected ? "Display detectado" : "Display não encontrado";
   $("#side-port").textContent = data.port || "USB · VID_1A86";
-  $("#main-status").textContent = data.port_open ? "Porta serial aberta" : connected ? "Conectado ao USB" : "Aguardando display";
+  $("#main-status").textContent = frameSendRunning
+    ? "Enviando tela ao display"
+    : displayTransmitting
+      ? "Display atualizado automaticamente"
+      : data.port_open
+        ? "Porta serial aberta"
+        : connected
+          ? "Conectado ao USB"
+          : "Aguardando display";
   $("#device-name").textContent = data.description || (connected ? "Display Turing 3,5″" : "Display não encontrado");
   $("#device-detail").textContent = data.port ? `${data.port} · VID_1A86 · PID_5722` : "Conecte o display USB (VID_1A86 · PID_5722)";
-  $("#connect").disabled = !connected && !data.port_open;
-  $("#connect").textContent = data.port_open ? "Fechar porta COM" : "Abrir display (COM)";
+  $("#connect").disabled = frameSendRunning || (!connected && !data.port_open);
+  $("#connect").textContent = frameSendRunning
+    ? "Enviando tela…"
+    : displayTransmitting
+      ? "Parar transmissão"
+      : data.port_open
+        ? "Fechar porta COM"
+        : "Transmitir para display";
+  $("#send-now").disabled = frameSendRunning || !data.port_open;
   const select = $("#port-select");
   select.replaceChildren(new Option(data.port || "Dispositivo não encontrado", data.port || ""));
   select.disabled = !connected || data.port_open;
@@ -373,21 +401,170 @@ async function refreshWeather(city = settings.city) {
   }
 }
 
-async function togglePort() {
-  const closing = $("#connect").textContent === "Fechar porta COM";
+function copyComputedStyles(source, clone) {
+  const computed = source.ownerDocument.defaultView.getComputedStyle(source);
+  for (let index = 0; index < computed.length; index += 1) {
+    const property = computed.item(index);
+    clone.style.setProperty(property, computed.getPropertyValue(property), computed.getPropertyPriority(property));
+  }
+  const sourceChildren = [...source.children];
+  const cloneChildren = [...clone.children];
+  sourceChildren.forEach((child, index) => {
+    if (cloneChildren[index]) copyComputedStyles(child, cloneChildren[index]);
+  });
+}
+
+async function loadCaptureFrame() {
+  if (!captureFrame) {
+    captureFrame = document.createElement("iframe");
+    captureFrame.id = "display-capture-frame";
+    captureFrame.title = "Renderização do layout para o display físico";
+    captureFrame.setAttribute("sandbox", "allow-scripts allow-same-origin");
+    Object.assign(captureFrame.style, {
+      position: "fixed",
+      left: "-600px",
+      top: "0",
+      width: `${DISPLAY_WIDTH}px`,
+      height: `${DISPLAY_HEIGHT}px`,
+      border: "0",
+      opacity: "0",
+      pointerEvents: "none",
+      zIndex: "-1",
+    });
+    document.body.append(captureFrame);
+  }
+
+  if (captureFrame.dataset.template !== selectedTemplate) {
+    const request = ++captureTemplateLoadRequest;
+    const path = `./displays/${encodeURIComponent(selectedTemplate)}.html`;
+    await new Promise((resolve, reject) => {
+      captureFrame.addEventListener("load", resolve, { once: true });
+      captureFrame.addEventListener("error", () => reject(new Error("Não foi possível carregar o layout HTML para a transmissão.")), { once: true });
+      captureFrame.dataset.template = selectedTemplate;
+      captureFrame.src = path;
+    });
+    if (request !== captureTemplateLoadRequest || captureFrame.dataset.template !== selectedTemplate) {
+      throw new Error("O layout selecionado mudou durante a preparação da transmissão.");
+    }
+  }
+
+  sendDisplayState();
+  await captureFrame.contentDocument?.fonts?.ready;
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  return captureFrame;
+}
+
+async function captureDisplayPng() {
+  const frame = await loadCaptureFrame();
+  const frameDocument = frame.contentDocument;
+  const body = frameDocument?.body;
+  if (!body) throw new Error("O layout selecionado ainda não está pronto para transmissão.");
+
+  const bodyClone = body.cloneNode(true);
+  copyComputedStyles(body, bodyClone);
+  bodyClone.querySelectorAll("script").forEach((script) => script.remove());
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${DISPLAY_WIDTH}" height="${DISPLAY_HEIGHT}" viewBox="0 0 ${DISPLAY_WIDTH} ${DISPLAY_HEIGHT}"><foreignObject x="0" y="0" width="${DISPLAY_WIDTH}" height="${DISPLAY_HEIGHT}">${new XMLSerializer().serializeToString(bodyClone)}</foreignObject></svg>`;
+  const svgUrl = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
   try {
-    const data = closing
-      ? await invoke("disconnect_serial")
-      : await invoke("connect_serial", {
-        port: $("#port-select").value,
-        baudRate: Number($("#baud").value),
-      });
-    updateStatus(data);
-    notice(closing
-      ? "Porta COM fechada."
-      : "Porta COM aberta. Isso não envia dados nem acende a tela física; o protocolo ainda não foi confirmado.");
+    const image = new Image();
+    image.src = svgUrl;
+    await image.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = DISPLAY_WIDTH;
+    canvas.height = DISPLAY_HEIGHT;
+    const context = canvas.getContext("2d", { alpha: false });
+    if (!context) throw new Error("Não foi possível criar a imagem para o display.");
+
+    const background = frame.contentWindow.getComputedStyle(body).backgroundColor;
+    context.fillStyle = background === "rgba(0, 0, 0, 0)" ? "#000000" : background;
+    context.fillRect(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+    context.filter = getComputedStyle($(".screen")).filter;
+    if ($(".screen").style.transform === "rotate(180deg)") {
+      context.translate(DISPLAY_WIDTH, DISPLAY_HEIGHT);
+      context.rotate(Math.PI);
+    }
+    context.drawImage(image, 0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT);
+    const png = await new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("Não foi possível codificar a imagem do display."));
+      }, "image/png");
+    });
+    return [...new Uint8Array(await png.arrayBuffer())];
+  } finally {
+    URL.revokeObjectURL(svgUrl);
+  }
+}
+
+async function sendDisplayFrame() {
+  if (frameSendRunning) return;
+  frameSendRunning = true;
+  if (currentDeviceStatus) updateStatus(currentDeviceStatus);
+  try {
+    const imagePng = await captureDisplayPng();
+    const result = await invoke("send_display_frame", { imagePng });
+    notice(`Layout enviado ao display (${result.width} × ${result.height}, RGB565). Próxima atualização automática em 1 minuto.`);
+    return result;
   } catch (error) {
-    notice(String(error), "error");
+    if (displayTransmitting) {
+      clearInterval(displayRefreshTimer);
+      displayRefreshTimer = null;
+      displayTransmitting = false;
+    }
+    try {
+      updateStatus(await invoke("get_device_status"));
+    } catch (statusError) {
+      notice(`Falha ao transmitir: ${error}. Não foi possível confirmar o estado da porta: ${statusError}`, "error");
+      throw error;
+    }
+    notice(`Falha ao transmitir a tela: ${error}`, "error");
+    throw error;
+  } finally {
+    frameSendRunning = false;
+    if (currentDeviceStatus) updateStatus(currentDeviceStatus);
+  }
+}
+
+async function togglePort() {
+  if (currentDeviceStatus?.port_open) {
+    clearInterval(displayRefreshTimer);
+    displayRefreshTimer = null;
+    displayTransmitting = false;
+    try {
+      updateStatus(await invoke("disconnect_serial"));
+      notice("Transmissão interrompida e porta COM fechada.");
+    } catch (error) {
+      notice(`Não foi possível fechar a porta COM: ${error}`, "error");
+    }
+    return;
+  }
+
+  let opened = false;
+  try {
+    const data = await invoke("connect_serial", {
+      port: $("#port-select").value,
+      baudRate: 115200,
+    });
+    opened = true;
+    displayTransmitting = true;
+    updateStatus(data);
+    await sendDisplayFrame();
+    displayRefreshTimer = setInterval(() => {
+      sendDisplayFrame().catch((error) => console.error("Falha na atualização automática do display:", error));
+    }, DISPLAY_REFRESH_MS);
+  } catch (error) {
+    clearInterval(displayRefreshTimer);
+    displayRefreshTimer = null;
+    displayTransmitting = false;
+    if (opened) {
+      try {
+        updateStatus(await invoke("disconnect_serial"));
+      } catch (closeError) {
+        notice(`Falha na transmissão: ${error}. Também não foi possível fechar a porta: ${closeError}`, "error");
+        return;
+      }
+    }
+    if (!$("#notice").classList.contains("error")) notice(String(error), "error");
   }
 }
 
@@ -475,6 +652,9 @@ document.querySelectorAll("[data-go]").forEach((el) => el.addEventListener("clic
 $("#quick-theme").addEventListener("change", (event) => chooseTheme(event.target.value));
 $("#refresh").addEventListener("click", refreshStatus);
 $("#connect").addEventListener("click", togglePort);
+$("#send-now").addEventListener("click", () => {
+  sendDisplayFrame().catch((error) => console.error("Falha no envio manual ao display:", error));
+});
 $("#brightness").addEventListener("input", (event) => { $("#brightness-value").value = `${event.target.value}%`; });
 $("#rotation").addEventListener("change", (event) => {
   $(".screen").style.transform = Number(event.target.value) === 180 || $("#mirror").checked ? "rotate(180deg)" : "";
