@@ -10,7 +10,12 @@ use serde::Serialize;
 use sysinfo::{Networks, System};
 use tauri::{AppHandle, Manager};
 
-use crate::{cpu, gpu::NvidiaTelemetry, ram};
+use crate::{
+    cpu,
+    gpu::NvidiaTelemetry,
+    ram,
+    tray::{self, TrayState},
+};
 
 const SAMPLE_INTERVAL: Duration = Duration::from_secs(1);
 const LOG_CAPACITY: usize = 3_600;
@@ -46,11 +51,11 @@ struct TelemetryData {
 pub struct TelemetryState(Arc<RwLock<TelemetryData>>);
 
 impl TelemetryState {
-    pub fn start(&self) -> std::io::Result<()> {
+    pub fn start(&self, app: AppHandle, tray_state: TrayState) -> std::io::Result<()> {
         let state = self.clone();
         thread::Builder::new()
             .name("system-telemetry".to_owned())
-            .spawn(move || collect_loop(state))?;
+            .spawn(move || collect_loop(state, app, tray_state))?;
         Ok(())
     }
 
@@ -82,13 +87,14 @@ impl TelemetryState {
     }
 }
 
-fn collect_loop(state: TelemetryState) {
+fn collect_loop(state: TelemetryState, app: AppHandle, tray_state: TrayState) {
     let mut system = System::new();
     system.refresh_cpu_all();
     system.refresh_memory();
     let mut networks = Networks::new_with_refreshed_list();
     let mut previous_network = network_totals(&networks);
     let mut last_sample = Instant::now();
+    let mut last_tray_update = Instant::now();
     let nvml = match NvidiaTelemetry::load() {
         Ok(nvml) => Some(nvml),
         Err(error) => {
@@ -130,7 +136,11 @@ fn collect_loop(state: TelemetryState) {
         if let Some(nvml) = &nvml {
             nvml.collect(&mut snapshot);
         }
-        state.record(snapshot);
+        state.record(snapshot.clone());
+        if last_tray_update.elapsed() >= Duration::from_secs(5) {
+            last_tray_update = Instant::now();
+            tray::update(&app, &tray_state, &snapshot);
+        }
     }
 }
 

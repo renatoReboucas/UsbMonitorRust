@@ -1,0 +1,17 @@
+[
+  {
+    "id": "reference",
+    "name": "Referência · azul",
+    "description": "Relógio, clima e cartões empilhados no layout da foto."
+  },
+  {
+    "id": "compact",
+    "name": "Compacto · neon",
+    "description": "Cabeçalho curto e cartões de métricas em grade."
+  },
+  {
+    "id": "minimal",
+    "name": "Minimal · claro",
+    "description": "Layout claro com tipografia e indicadores simplificados."
+  }
+]

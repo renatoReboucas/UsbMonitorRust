@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" href="./reference.css">
+    <script src="./runtime.js" defer></script>
+    <title>Layout de referência</title>
+  </head>
+  <body>
+    <main class="display">
+      <section class="overview">
+        <header><span>▣</span><div><b id="computer">Este computador</b><small id="os">Windows</small></div></header>
+        <time id="clock">--:--</time>
+        <div id="date" class="date"></div>
+        <section class="weather">
+          <span id="weather-icon" class="weather-icon">☁</span>
+          <div><b id="weather-temperature">—°C</b><small id="weather-description">CLIMA</small></div>
+          <div class="weather-details"><span id="weather-city">São Paulo</span><span id="weather-high">↑ —°</span><span id="weather-low">↓ —°</span><span id="weather-humidity">◉ —%</span></div>
+        </section>
+      </section>
+      <section class="metrics">
+        <article class="metric cpu"><header><b>CPU</b><span id="cpu-frequency">— GHz</span></header><strong id="cpu-usage">N/D</strong><div class="meter"><i id="cpu-meter"></i></div><small id="cpu-name">Processador</small></article>
+        <article class="metric ram"><header><b>RAM</b><span id="ram-total">N/D</span></header><strong id="ram-usage">N/D</strong><div class="meter"><i id="ram-meter"></i></div><small id="ram-name">Memória do sistema</small></article>
+        <article class="metric gpu"><header><b>GPU</b><span id="gpu-temperature">TEMP N/D</span></header><strong id="gpu-usage">N/D</strong><div class="meter"><i id="gpu-meter"></i></div><small id="gpu-name">GPU indisponível</small></article>
+      </section>
+      <footer><span>UPTIME <b id="uptime">—</b></span><span>REDE <b id="upload">↑ —</b><b id="download">↓ —</b></span><span>STATUS <b id="network">—</b></span><span>VRAM <b id="vram">—</b></span></footer>
+    </main>
+  </body>
+</html>

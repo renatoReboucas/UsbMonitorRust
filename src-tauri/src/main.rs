@@ -6,6 +6,7 @@ mod serial;
 mod startup;
 mod telemetry;
 mod tray;
+mod weather;
 
 use std::sync::Mutex;
 
@@ -13,6 +14,8 @@ use config::{AppConfig, ConfigStore};
 use serial::{DeviceStatus, SerialState};
 use tauri::{Manager, State};
 use telemetry::{SystemMetrics, TelemetryState};
+use tray::TrayState;
+use weather::{WeatherSnapshot, WeatherState};
 
 #[tauri::command]
 fn get_metrics(state: State<'_, TelemetryState>) -> Result<SystemMetrics, String> {
@@ -22,6 +25,14 @@ fn get_metrics(state: State<'_, TelemetryState>) -> Result<SystemMetrics, String
 #[tauri::command]
 fn get_history(state: State<'_, TelemetryState>) -> Result<Vec<SystemMetrics>, String> {
     state.history()
+}
+
+#[tauri::command]
+async fn get_weather(
+    city: String,
+    state: State<'_, WeatherState>,
+) -> Result<WeatherSnapshot, String> {
+    weather::current(&state, &city).await
 }
 
 #[tauri::command]
@@ -92,6 +103,8 @@ fn main() {
         .plugin(tauri_plugin_autostart::Builder::new().build())
         .manage(TelemetryState::default())
         .manage(SerialState::default())
+        .manage(WeatherState::default())
+        .manage(TrayState::default())
         .manage(ConfigStore(Mutex::new(AppConfig::default())))
         .setup(|app| {
             let loaded = config::load(app.handle())?;
@@ -106,13 +119,16 @@ fn main() {
             if loaded.start_with_windows {
                 startup::set_enabled(app.handle(), true).map_err(std::io::Error::other)?;
             }
-            tray::install(app)?;
-            app.state::<TelemetryState>().start()?;
+            let tray_state = app.state::<TrayState>().inner().clone();
+            tray::install(app, &tray_state)?;
+            app.state::<TelemetryState>()
+                .start(app.handle().clone(), tray_state)?;
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             get_metrics,
             get_history,
+            get_weather,
             get_device_status,
             connect_serial,
             disconnect_serial,

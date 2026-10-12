@@ -6,7 +6,8 @@ use tauri::{AppHandle, Manager};
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct AppConfig {
-    pub theme: String,
+    pub display_template: String,
+    pub palette: String,
     pub brightness: u8,
     pub rotation: u16,
     pub mirror: bool,
@@ -23,7 +24,8 @@ pub struct AppConfig {
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
-            theme: "3.5inchTheme1".to_owned(),
+            display_template: "reference".to_owned(),
+            palette: "mocha".to_owned(),
             brightness: 80,
             rotation: 0,
             mirror: false,
@@ -33,7 +35,7 @@ impl Default for AppConfig {
             ram_custom: String::new(),
             sensor: "CPU (Tctl/Tdie)".to_owned(),
             network: "Detecção automática".to_owned(),
-            city: String::new(),
+            city: "São Paulo, São Paulo".to_owned(),
             start_with_windows: false,
         }
     }
@@ -41,24 +43,19 @@ impl Default for AppConfig {
 
 impl AppConfig {
     pub fn validate(mut self) -> Result<Self, String> {
-        const THEMES: [&str; 8] = [
-            "3.5inchTheme1",
-            "3.5inchTheme2",
-            "MagicBlue",
-            "LandscapeTechnology",
-            "LandscapeMagicBlue",
-            "LandscapeDeepSpace",
-            "AORUS",
-            "LandscapeSimpleWhite",
-        ];
+        const PALETTES: [&str; 4] = ["latte", "frappe", "macchiato", "mocha"];
         if self.brightness > 100 {
             return Err("O brilho precisa estar entre 0 e 100%.".to_owned());
         }
         if !matches!(self.rotation, 0 | 180) {
             return Err("A rotação precisa ser 0° ou 180°.".to_owned());
         }
-        if !THEMES.contains(&self.theme.as_str()) {
-            return Err("O tema selecionado não existe.".to_owned());
+        if !valid_template_id(&self.display_template) {
+            return Err("O identificador do layout HTML não é válido.".to_owned());
+        }
+        self.palette.make_ascii_lowercase();
+        if !PALETTES.contains(&self.palette.as_str()) {
+            return Err("A paleta de cores selecionada não existe.".to_owned());
         }
         for (label, value) in [
             ("CPU", &mut self.cpu_custom),
@@ -88,8 +85,17 @@ pub struct ConfigStore(pub Mutex<AppConfig>);
 pub fn load(app: &AppHandle) -> Result<AppConfig, String> {
     let path = settings_path(app)?;
     match fs::read_to_string(&path) {
-        Ok(contents) => serde_json::from_str(&contents)
-            .map_err(|error| format!("O arquivo de configurações está inválido: {error}")),
+        Ok(contents) => {
+            let mut config: AppConfig = serde_json::from_str(&contents)
+                .map_err(|error| format!("O arquivo de configurações está inválido: {error}"))?;
+            if !valid_template_id(&config.display_template) {
+                config.display_template = AppConfig::default().display_template;
+            }
+            if config.city.trim().is_empty() {
+                config.city = AppConfig::default().city;
+            }
+            Ok(config)
+        }
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(AppConfig::default()),
         Err(error) => Err(format!(
             "Não foi possível ler as configurações em {}: {error}",
@@ -157,6 +163,14 @@ fn valid_color(value: &str) -> bool {
         && value[1..].bytes().all(|byte| byte.is_ascii_hexdigit())
 }
 
+fn valid_template_id(value: &str) -> bool {
+    !value.is_empty()
+        && value.len() <= 48
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -180,5 +194,18 @@ mod tests {
     fn validates_hex_color_without_panicking_on_unicode() {
         assert!(!valid_color("#ééééé"));
         assert!(!valid_color("abcdefg"));
+    }
+
+    #[test]
+    fn accepts_only_safe_html_template_identifiers() {
+        assert!(valid_template_id("my-display-v2"));
+        assert!(!valid_template_id("../outside"));
+        assert!(!valid_template_id("MyDisplay"));
+    }
+
+    #[test]
+    fn legacy_theme_settings_fall_back_to_the_reference_template() {
+        let config: AppConfig = serde_json::from_str(r#"{"theme":"3.5inchTheme1"}"#).unwrap();
+        assert_eq!(config.display_template, "reference");
     }
 }

@@ -28,6 +28,11 @@
         <section class="page active" id="page-monitor">
           <div class="heading"><div><label>VISÃO GERAL</label><h1>Monitor</h1><p>Métricas em tempo real deste computador.</p></div><span class="live"><i id="main-dot"></i><span id="main-status">Verificando dispositivo</span></span></div>
           <div id="notice" class="notice" role="status" hidden></div>
+          <section class="preview panel main-display-preview" aria-label="Prévia fiel da tela 3,5 polegadas">
+            <div class="display-preview-heading"><div><label>LAYOUT DO DISPLAY · 800 × 450</label><h2>Tela 3,5″</h2></div><span class="tag" id="weather-city-label">SÃO PAULO, BRASIL</span></div>
+            <div class="screen"><iframe id="display-frame" title="Prévia do layout HTML do display" sandbox="allow-scripts allow-same-origin"></iframe></div>
+            <div class="display-preview-caption"><span>↗</span><p>Prévia ao vivo do layout da foto. O envio para a tela física depende da confirmação do protocolo serial.</p></div>
+          </section>
           <section class="live-metrics" aria-label="Métricas atuais do computador">
             <article class="live-metric-card cpu-live-card">
               <div class="live-metric-heading"><span class="live-metric-icon">▦</span><span><b>PROCESSADOR</b><small id="home-cpu-name">Carregando CPU…</small></span><span class="live-pill">AO VIVO</span></div>
@@ -61,58 +66,21 @@
               <label class="field"><span>VELOCIDADE SERIAL</span><select id="baud"><option value="115200">115200 baud</option><option value="9600">9600 baud</option><option value="57600">57600 baud</option><option value="38400">38400 baud</option><option value="19200">19200 baud</option></select></label>
               <button class="primary" id="connect" disabled>Abrir serial</button>
             </div>
-            <small class="serial-hint">As métricas do computador funcionam sem abrir a porta serial.</small>
+            <small class="serial-hint">“Abrir display” abre somente a COM; a imagem física exige o protocolo serial confirmado.</small>
           </section>
           <div class="section-heading"><div><label>PERSONALIZAÇÃO</label><h2>Configuração rápida</h2></div><button class="link" data-go="settings">Todas as opções →</button></div>
           <div class="quick-grid">
-            <section class="panel quick"><span class="tile-icon cyan">◈</span><label class="field"><span>TEMA DO DISPLAY</span><select id="quick-theme"></select></label><button class="subtle" data-go="themes">Explorar temas</button></section>
+            <section class="panel quick"><span class="tile-icon cyan">◈</span><label class="field"><span>LAYOUT HTML DO DISPLAY</span><select id="quick-theme"></select></label><button class="subtle" data-go="themes">Explorar layouts</button></section>
             <section class="panel quick"><span class="tile-icon purple">◐</span><label class="field"><span>BRILHO <output id="brightness-value">80%</output></span><input id="brightness" type="range" min="0" max="100" value="80"></label><small>Pré-visualização da configuração.</small></section>
             <section class="panel quick"><span class="tile-icon blue">⟳</span><label class="field"><span>ROTAÇÃO DA TELA</span><select id="rotation"><option value="0">0° · Normal</option><option value="180">180° · Invertida</option></select></label><small>A orientação é aplicada pelo tema.</small></section>
           </div>
           <div class="section-heading"><div><label>TELA SECUNDÁRIA</label><h2>Pré-visualização</h2></div><span class="tag">TEMA DO DISPLAY</span></div>
-          <section class="preview panel">
-            <div class="screen">
-              <div class="screen-content">
-                <section class="screen-left">
-                  <div class="screen-identity"><span class="screen-computer">▣</span><span><b id="computer-name">Este computador</b><small id="os-version">Windows</small></span></div>
-                  <time id="clock" class="screen-clock">22:04</time>
-                  <div id="screen-date" class="screen-date">DOM&nbsp; 11&nbsp; OUT&nbsp; 2026</div>
-                  <div class="weather-card">
-                    <span class="weather-icon">☁</span>
-                    <span class="weather-now"><b id="weather-temperature">—°</b><small id="weather-description">CLIMA</small></span>
-                    <span class="weather-details"><span>Defina</span><span>uma cidade</span><span>nas opções</span></span>
-                  </div>
-                </section>
-                <section class="screen-metrics" aria-label="Prévia de CPU, memória e GPU">
-                  <article class="metric-card cpu-card">
-                    <span class="metric-accent"></span><span class="metric-icon">▦</span>
-                    <div class="metric-info"><div class="metric-title"><b>CPU</b><b id="cpu-frequency">— MHz</b></div><div class="metric-reading"><strong id="cpu-usage">—<small>%</small></strong><svg class="sparkline" viewBox="0 0 120 30" aria-hidden="true"><path id="cpu-history" d=""/></svg></div><small id="cpu-custom-preview" class="meter-caption">Aguardando métrica</small></div>
-                  </article>
-                  <article class="metric-card ram-card">
-                    <span class="metric-accent"></span><span class="metric-icon">▤</span>
-                    <div class="metric-info"><div class="metric-title"><b>RAM</b><b id="ram-total">— GB</b></div><div class="metric-reading"><strong id="ram-usage">—<small>%</small></strong><div class="memory-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div><small id="ram-custom-preview" class="meter-caption">Aguardando métrica</small></div>
-                  </article>
-                  <article class="metric-card gpu-card">
-                    <span class="metric-accent"></span><span class="metric-icon">▣</span>
-                    <div class="metric-info"><div class="metric-title"><b>GPU</b><b id="gpu-temperature" class="gpu-temperature">TEMP —°C</b></div><div class="metric-reading"><strong id="gpu-usage">—<small>%</small></strong><div class="gpu-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div><small id="gpu-custom-preview" class="meter-caption">Aguardando métrica</small></div>
-                  </article>
-                </section>
-                <section class="screen-footer">
-                  <div class="footer-cell"><span class="footer-icon">◷</span><span><b>UPTIME</b><small id="uptime">—</small></span></div>
-                  <div class="footer-cell network-cell"><span><b id="upload-speed" class="upload">⬆ — MB/s</b><b id="download-speed" class="download">⬇ — MB/s</b><small>NETWORK</small></span></div>
-                  <div class="footer-cell ethernet-cell"><span class="ethernet-icon">◉</span><span><b>REDE</b><small id="network-state">—</small></span></div>
-                  <div class="footer-cell temperature-cell"><span>♨</span><span><b>GPU TEMP</b><strong id="footer-gpu-temperature">—°C</strong></span></div>
-                  <div class="footer-cell vram-cell"><b>VRAM</b><strong id="vram">—</strong></div>
-                </section>
-              </div>
-            </div>
-            <div class="caption"><b>✦</b><div><strong>Tema de referência</strong><p>CPU, RAM, GPU, rede e uptime mostram leituras deste computador. Temperaturas ou dados sem fonte disponível ficam como N/D.</p></div></div>
-          </section>
           <footer>Interface para o display Turing 3,5″ <span>·</span> As métricas são reais; o envio de telas ao display ainda não está ativo.</footer>
         </section>
         <section class="page" id="page-themes">
-          <div class="heading"><div><label>APARÊNCIA</label><h1>Temas</h1><p>Escolha uma arte disponível para personalizar a tela.</p></div></div>
+          <div class="heading"><div><label>APARÊNCIA</label><h1>Layouts HTML</h1><p>Escolha um arquivo HTML para a prévia 800 × 450 do display.</p></div></div>
           <div id="theme-grid" class="theme-grid"></div>
+          <section class="panel template-help"><b>Como criar um layout</b><p>Crie um arquivo HTML em <code>frontend/displays/</code> e registre o identificador e o nome em <code>frontend/displays/templates.json</code>. Use <code>reference.html</code> como exemplo e reutilize <code>runtime.js</code> para receber as métricas ao vivo. Depois reinicie o app e selecione o novo layout.</p><p>Esses arquivos definem a prévia HTML. O envio à tela física continua dependendo da confirmação do protocolo serial.</p></section>
         </section>
         <section class="page" id="page-settings">
           <div class="heading"><div><label>PREFERÊNCIAS</label><h1>Configurações</h1><p>Ajuste as opções gerais do Turing Smart Screen.</p></div></div>
@@ -128,14 +96,15 @@
                 <label class="field"><span>RAM</span><input id="ram-custom" maxlength="24" placeholder="Ex.: 32 GB DDR5"></label>
                 <small>Esses textos aparecem como identificação nos cartões da prévia.</small>
               </fieldset>
-              <label class="field"><span>CIDADE PARA PREVISÃO DO TEMPO</span><span class="inline"><input id="city" placeholder="Digite uma cidade"><button class="secondary" id="search-city">Buscar</button></span></label>
-              <small id="city-result">A previsão não está ligada a um serviço meteorológico.</small>
+              <label class="field"><span>CIDADE PARA PREVISÃO DO TEMPO</span><span class="inline"><input id="city" maxlength="100" placeholder="Ex.: São Paulo, São Paulo, Brasil"><button class="secondary" id="search-city">Atualizar clima</button></span></label>
+              <small id="city-result">Clima público via Open-Meteo; a cidade configurada é enviada ao serviço para a consulta.</small>
             </section>
             <section class="panel settings">
               <div><label>APLICATIVO</label><h2>Inicialização e aparência</h2></div>
               <label class="toggle"><span><b>Iniciar com o Windows</b><small>Executa este aplicativo ao entrar na sua conta.</small></span><input id="start-with-windows" type="checkbox"></label>
               <label class="toggle"><span><b>Desativar atualizações</b><small>Esta versão não executa atualizações.</small></span><input type="checkbox" checked disabled></label>
               <label class="field"><span>COR DA BARRA DE STATUS</span><span class="color"><input id="bar-color" type="color" value="#35d7e9"> Cor de destaque</span></label>
+              <label class="field"><span>PALETA DE CORES · CATPPUCCIN</span><select id="palette"><option value="latte">Latte · claro</option><option value="frappe">Frappé</option><option value="macchiato">Macchiato</option><option value="mocha">Mocha</option></select></label>
               <label class="toggle"><span><b>Espelhar orientação</b><small>Prévia da inversão do display.</small></span><input id="mirror" type="checkbox"></label>
               <button class="primary save" id="save">Salvar preferências</button>
               <button class="secondary" id="export-logs">Exportar histórico CSV</button>

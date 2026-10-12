@@ -51,20 +51,31 @@ enviados ao hardware. O adaptador observado no Windows era `COM3`, com
   configuração do aplicativo, com arquivo temporário e backup de recuperação.
 - `startup.rs`: integração de inicialização automática do Windows.
 - `tray.rs`: ícone e menu da bandeja; fechar a janela oculta o app.
-- `frontend`: telas HTML/CSS/JavaScript e artes de tema; chamadas nativas via
-  Tauri, sem servidor HTTP local.
+- `frontend`: telas HTML/CSS/JavaScript e layouts 800 × 450 carregados em
+  `iframe`; os layouts estão em `frontend\displays`, registrados em
+  `templates.json` e recebem as métricas via `postMessage`.
+- `weather.rs`: consulta Open-Meteo para geocodificação e previsão atual, com
+  cache de 15 minutos e cidade/região editáveis; o padrão é São Paulo, SP.
+- `tray.rs` também atualiza CPU, RAM, GPU, temperatura disponível, rede e uptime
+  no menu/tooltip da bandeja, a cada cinco segundos.
+- Catppuccin Latte, Frappé, Macchiato e Mocha são paletas persistidas. Para
+  adicionar um layout HTML, crie `<id>.html` em `frontend\displays` e inclua o
+  ID e metadados em `templates.json`; `runtime.js` fornece os dados dinâmicos.
 
 ## Limites ainda abertos
 
 - O protocolo, o baud rate, o enquadramento e o transporte efetivo do display
   continuam desconhecidos. Não enviar comandos experimentais.
-- A GPU é consultada por NVML NVIDIA; métricas de GPU AMD/Intel ainda não estão
-  disponíveis nesta versão. Temperatura da CPU e previsão do tempo também não
-  têm fonte implementada.
+- A GPU é consultada por NVML NVIDIA; métricas de GPU AMD/Intel e temperatura
+  da CPU ainda não estão disponíveis nesta versão. A previsão é de fonte
+  pública Open-Meteo; a cidade configurada é enviada para geocodificação e
+  previsão, mas nenhuma telemetria do PC é transmitida.
 - O gráfico mantém amostras em memória por até uma hora e mostra no máximo os
   dois minutos mais recentes. O histórico é reiniciado ao fechar o aplicativo.
 - Tema, brilho, rotação e rótulos personalizados alteram a prévia/configuração,
   não o estado físico do display.
+- Os layouts HTML são prévias no WebView. Eles não substituem nem são
+  transmitidos ao protocolo do display USB.
 
 ## Verificação
 
