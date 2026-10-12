@@ -7,6 +7,7 @@ use tauri::{
     App, AppHandle, Manager, Wry,
 };
 
+use crate::serial::{self, SerialState};
 use crate::telemetry::SystemMetrics;
 
 #[derive(Clone, Default)]
@@ -47,6 +48,13 @@ pub fn install(app: &App, state: &TrayState) -> tauri::Result<()> {
         None::<&str>,
     )?;
     let show = MenuItem::with_id(app, "show", "Abrir UsbMonitor", true, None::<&str>)?;
+    let release_serial = MenuItem::with_id(
+        app,
+        "release-serial",
+        "Liberar porta serial",
+        true,
+        None::<&str>,
+    )?;
     let quit = MenuItem::with_id(app, "quit", "Encerrar", true, None::<&str>)?;
     let menu = Menu::with_items(
         app,
@@ -58,6 +66,7 @@ pub fn install(app: &App, state: &TrayState) -> tauri::Result<()> {
             &network,
             &uptime,
             &show,
+            &release_serial,
             &quit,
         ],
     )?;
@@ -81,6 +90,13 @@ pub fn install(app: &App, state: &TrayState) -> tauri::Result<()> {
         .menu(&menu)
         .on_menu_event(|app, event| match event.id().as_ref() {
             "show" => show_window(app),
+            "release-serial" => {
+                if let Some(state) = app.try_state::<SerialState>() {
+                    if let Err(error) = serial::disconnect(&state) {
+                        eprintln!("Não foi possível liberar a porta serial pela bandeja: {error}");
+                    }
+                }
+            }
             "quit" => app.exit(0),
             _ => {}
         })

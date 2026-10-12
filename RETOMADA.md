@@ -57,7 +57,9 @@ enviados ao hardware. O adaptador observado no Windows era `COM3`, com
 - `weather.rs`: consulta Open-Meteo para geocodificação e previsão atual, com
   cache de 15 minutos e cidade/região editáveis; o padrão é São Paulo, SP.
 - `tray.rs` também atualiza CPU, RAM, GPU, temperatura disponível, rede e uptime
-  no menu/tooltip da bandeja, a cada cinco segundos.
+  no menu/tooltip da bandeja, a cada cinco segundos. A ação “Liberar porta
+  serial” desconecta uma porta aberta por esta instância mesmo com a janela
+  oculta.
 - Catppuccin Latte, Frappé, Macchiato e Mocha são paletas persistidas. Para
   adicionar um layout HTML, crie `<id>.html` em `frontend\displays` e inclua o
   ID e metadados em `templates.json`; `runtime.js` fornece os dados dinâmicos.

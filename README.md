@@ -59,7 +59,8 @@ pasta de build e não deve ser copiada nem versionada junto ao código-fonte.
   aplicativo; inicialização do Windows configurável.
 - Bandeja do sistema: clique ou “Abrir UsbMonitor” mostra a janela; fechar a
   janela a oculta; “Encerrar” finaliza o aplicativo. O menu e a dica da bandeja
-  exibem CPU, RAM, GPU, temperatura disponível, rede e uptime.
+  exibem CPU, RAM, GPU, temperatura disponível, rede e uptime. “Liberar porta
+  serial” fecha uma COM aberta por esta instância, mesmo com a janela oculta.
 - Exportação das amostras para CSV em `Downloads\UsbMonitorRust`.
 - Detecção opcional do adaptador USB serial `VID_1A86:PID_5722`, com abertura e
   fechamento explícitos.
@@ -86,6 +87,11 @@ bytes. A interface atual mantém esse limite de segurança: não altera o displa
 físico. O protocolo, baud rate correto e formato das telas ainda precisam de
 captura passiva e confirmação antes de implementar transmissão. A identificação
 USB, isoladamente, não comprova o protocolo.
+
+Se o Windows informar que COM3 está ocupada/acesso negado, verifique também o
+programa original do display, terminais seriais e outras instâncias deste app.
+Fechar a janela do UsbMonitor apenas o oculta na bandeja; use “Liberar porta
+serial” para fechar a conexão da instância atual ou “Encerrar” para sair.
 
 Esta versão obtém métricas de GPU pela NVML NVIDIA. Métricas equivalentes de
 GPU Intel/AMD e temperatura da CPU não foram implementadas. Brilho, tema,

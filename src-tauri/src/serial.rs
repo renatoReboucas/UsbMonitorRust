@@ -66,7 +66,7 @@ pub fn connect(state: &SerialState, port_name: &str, baud_rate: u32) -> Result<(
         .open()
         .map_err(|error| {
             format!(
-                "Não foi possível abrir {port_name}. Feche o UsbMonitor original e tente novamente: {error}"
+                "Não foi possível abrir {port_name}: {error}. A porta pode estar ocupada por outra instância do UsbMonitor (inclusive oculta na bandeja), pelo programa original do display ou por um terminal serial. Feche a outra conexão ou use “Liberar porta serial” no menu da bandeja e tente novamente."
             )
         })?;
     let mut serial = state
