@@ -20,8 +20,8 @@
 }
 
 html, body {
-  width: 480px;
-  height: 320px;
+  width: 100%;
+  height: 100%;
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -32,11 +32,11 @@ html, body {
 
 .display {
   display: grid;
-  width: 480px;
-  height: 320px;
-  grid-template-rows: 38px 216px 34px;
-  gap: 8px;
-  padding: 8px;
+  width: 100%;
+  height: 100%;
+  grid-template-rows: 32px 1fr 30px;
+  gap: 5px;
+  padding: 5px;
 }
 
 /* ==========================================================================
@@ -46,22 +46,25 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
+  gap: 8px;
+  padding: 0 10px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  height: 38px;
+  border-radius: 7px;
+  height: 32px;
+  min-width: 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .time-block {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  align-items: baseline;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 #clock {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
   color: var(--accent);
   letter-spacing: -0.02em;
@@ -69,47 +72,53 @@ html, body {
 }
 
 .date-chip {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--muted);
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .weather-chip {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   background: #f8fafc;
-  padding: 4px 10px;
-  border-radius: 6px;
+  padding: 2px 8px;
+  border-radius: 5px;
   border: 1px solid var(--border);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .weather-chip span:first-child {
-  font-size: 15px;
+  font-size: 14px;
   color: var(--warm);
+  flex-shrink: 0;
 }
 
 #weather-temperature {
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 800;
   color: var(--text);
+  flex-shrink: 0;
 }
 
 .sep {
   color: var(--border);
   font-weight: 700;
+  flex-shrink: 0;
 }
 
-#weather-city {
-  font-size: 12px;
+.weather-city-name {
+  font-size: 11px;
   font-weight: 700;
   color: var(--muted);
-  max-width: 100px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 
 /* ==========================================================================
@@ -117,21 +126,24 @@ html, body {
    ========================================================================== */
 .reading {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  height: 216px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+  min-height: 0;
 }
 
 .card {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 10px 10px 8px 10px;
+  padding: 7px 7px 5px 7px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-top: 4px solid var(--tone);
-  border-radius: 8px;
+  border-top: 3px solid var(--tone);
+  border-radius: 7px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .card.cpu { --tone: var(--cpu); }
@@ -143,48 +155,57 @@ html, body {
   align-items: center;
   justify-content: space-between;
   gap: 4px;
+  min-width: 0;
+  line-height: 1;
 }
 
 .card-tag {
-  font-size: 12.5px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.05em;
   color: #ffffff;
   background: var(--tone);
   border-radius: 4px;
-  padding: 2px 7px;
+  padding: 1px 5px;
+  flex-shrink: 0;
 }
 
 .card-spec {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: right;
+  min-width: 0;
+  flex: 1;
 }
 
 .card-val-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 0;
+  min-height: 0;
+  flex: 1;
+  padding: 2px 0;
 }
 
 .card-val-row strong {
-  font-size: 40px;
+  font-size: clamp(30px, 7vw, 36px);
   font-weight: 800;
-  line-height: 0.95;
+  line-height: 1;
   color: var(--tone);
   letter-spacing: -0.03em;
 }
 
 .meter-bar {
   width: 100%;
-  height: 9px;
+  height: 8px;
   background: #e2e8f0;
-  border-radius: 5px;
+  border-radius: 4px;
   overflow: hidden;
+  margin: 4px 0;
 }
 
 .meter-bar i {
@@ -192,20 +213,22 @@ html, body {
   width: 0%;
   height: 100%;
   background: var(--tone);
-  border-radius: 5px;
+  border-radius: 4px;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card-foot {
   display: block;
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 700;
   color: var(--muted);
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding-top: 4px;
+  padding-top: 2px;
+  line-height: 1.2;
+  min-width: 0;
 }
 
 /* ==========================================================================
@@ -213,13 +236,14 @@ html, body {
    ========================================================================== */
 .minimal-footer {
   display: grid;
-  grid-template-columns: 1.1fr 1.6fr 1.3fr;
+  grid-template-columns: 1fr 1.35fr 1.15fr;
   align-items: center;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  height: 34px;
+  border-radius: 7px;
+  height: 30px;
   padding: 0 6px;
+  min-width: 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
@@ -227,11 +251,13 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 5px;
   height: 100%;
-  padding: 0 8px;
+  padding: 0 4px;
   border-right: 1px solid var(--border);
   white-space: nowrap;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .foot-cell:last-child {
@@ -239,27 +265,37 @@ html, body {
 }
 
 .foot-title {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.05em;
   color: var(--accent);
+  flex-shrink: 0;
 }
 
 .foot-cell b {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .net-speeds {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  overflow: hidden;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .net-speeds span {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 #upload { color: #0284c7; }

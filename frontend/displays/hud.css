@@ -23,8 +23,8 @@
 }
 
 html, body {
-  width: 480px;
-  height: 320px;
+  width: 100%;
+  height: 100%;
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -35,11 +35,11 @@ html, body {
 
 .display {
   display: grid;
-  width: 480px;
-  height: 320px;
-  grid-template-rows: 42px 210px 38px;
-  gap: 7px;
-  padding: 8px;
+  width: 100%;
+  height: 100%;
+  grid-template-rows: 34px 1fr 30px;
+  gap: 5px;
+  padding: 5px;
 }
 
 /* ==========================================================================
@@ -49,101 +49,111 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
+  gap: 8px;
+  padding: 0 10px;
   background: var(--surface);
   border: 1px solid #1e293b;
   border-left: 3px solid var(--hud-cyan);
   border-radius: 6px;
-  height: 42px;
+  height: 34px;
+  min-width: 0;
 }
 
 .hud-brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .hud-marker {
   color: var(--hud-cyan);
-  font-size: 14px;
+  font-size: 13px;
+  flex-shrink: 0;
 }
 
 .hud-brand b {
   display: block;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 800;
   color: #ffffff;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 90px;
+  max-width: 80px;
 }
 
 .hud-brand small {
   display: block;
-  font-size: 10px;
+  font-size: 9.5px;
   color: var(--hud-cyan);
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
 }
 
 .hud-clock-wrap {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 7px;
+  flex-shrink: 0;
 }
 
 #clock {
-  font-size: 30px;
+  font-size: 24px;
   font-weight: 800;
   color: #ffffff;
   letter-spacing: -0.02em;
-  text-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
   line-height: 1;
 }
 
 .hud-date {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 800;
   color: var(--hud-yellow);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .hud-weather {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 1px;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .weather-row {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 #weather-icon {
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 #weather-temperature {
-  font-size: 15px;
+  font-size: 12.5px;
   font-weight: 800;
   color: #ffffff;
+  flex-shrink: 0;
 }
 
-#weather-city {
-  font-size: 11px;
+.hud-city-txt {
+  font-size: 10.5px;
   font-weight: 700;
   color: var(--muted);
-  letter-spacing: 0.04em;
-  max-width: 90px;
+  letter-spacing: 0.03em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 
 /* ==========================================================================
@@ -151,21 +161,24 @@ html, body {
    ========================================================================== */
 .hud-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 7px;
-  height: 210px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+  min-height: 0;
 }
 
 .hud-card {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 10px 10px 8px 10px;
+  padding: 7px 7px 5px 7px;
   background: var(--surface);
   border: 1px solid #1e293b;
   border-top: 3px solid var(--tone);
   border-radius: 6px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .hud-card.cpu { --tone: var(--cpu); }
@@ -177,41 +190,49 @@ html, body {
   align-items: center;
   justify-content: space-between;
   gap: 4px;
+  min-width: 0;
+  line-height: 1;
 }
 
 .card-badge {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: var(--tone);
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid var(--tone);
-  border-radius: 4px;
-  padding: 1px 6px;
+  border-radius: 3px;
+  padding: 1px 5px;
+  flex-shrink: 0;
 }
 
 .card-spec {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: #cbd5e1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: right;
+  min-width: 0;
+  flex: 1;
 }
 
 .card-center {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 0;
+  min-height: 0;
+  flex: 1;
+  padding: 2px 0;
 }
 
 .card-center strong {
-  font-size: 40px;
+  font-size: clamp(30px, 7vw, 36px);
   font-weight: 800;
-  line-height: 0.95;
+  line-height: 1;
   color: #ffffff;
-  text-shadow: 0 0 14px color-mix(in srgb, var(--tone) 75%, transparent);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--tone) 75%, transparent);
   letter-spacing: -0.02em;
 }
 
@@ -222,11 +243,12 @@ html, body {
 .hud-gauge-bar {
   display: block;
   width: 100%;
-  height: 10px;
+  height: 8px;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.15);
+  margin: 3px 0;
 }
 
 .hud-gauge-bar i {
@@ -235,20 +257,22 @@ html, body {
   height: 100%;
   background: var(--tone);
   border-radius: 2px;
-  box-shadow: 0 0 8px var(--tone);
+  box-shadow: 0 0 6px var(--tone);
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card-name {
   display: block;
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 700;
   color: var(--muted);
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding-top: 3px;
+  padding-top: 2px;
+  line-height: 1.2;
+  min-width: 0;
 }
 
 /* ==========================================================================
@@ -256,24 +280,27 @@ html, body {
    ========================================================================== */
 .hud-footer {
   display: grid;
-  grid-template-columns: 1fr 1.4fr 0.9fr 1.1fr;
+  grid-template-columns: 1fr 1.35fr 0.9fr 1.15fr;
   align-items: center;
   background: var(--surface);
   border: 1px solid #1e293b;
   border-radius: 6px;
-  height: 38px;
+  height: 30px;
   padding: 0 4px;
+  min-width: 0;
 }
 
 .hud-stat {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
   height: 100%;
-  padding: 0 6px;
+  padding: 0 4px;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   white-space: nowrap;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .hud-stat:last-child {
@@ -281,30 +308,39 @@ html, body {
 }
 
 .hud-lbl {
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   color: var(--hud-cyan);
+  flex-shrink: 0;
 }
 
 .hud-stat b {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .net-duo {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  overflow: hidden;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .net-duo b {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 #upload { color: var(--hud-cyan); }
 #download { color: var(--hud-yellow); }
 #network { color: var(--hud-green); }
-

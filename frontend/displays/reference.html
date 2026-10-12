@@ -2,7 +2,7 @@
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=480, height=320, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="./reference.css">
     <script src="./runtime.js" defer></script>
     <title>Layout de Referência · 3.5"</title>
@@ -25,20 +25,18 @@
         </div>
 
         <section class="weather-box">
-          <div class="weather-primary">
+          <div class="weather-row-top">
             <span id="weather-icon" class="weather-icon">☁</span>
             <b id="weather-temperature">—°C</b>
+            <span id="weather-city" class="weather-city">São Paulo</span>
           </div>
-          <div class="weather-secondary">
-            <span id="weather-city">São Paulo</span>
-            <div class="weather-sub">
-              <span id="weather-humidity">◉ —%</span>
-              <small id="weather-description">CLIMA</small>
-            </div>
-            <!-- Elementos preservados para compatibilidade com runtime -->
-            <span id="weather-high" style="display:none">↑ —°</span>
-            <span id="weather-low" style="display:none">↓ —°</span>
+          <div class="weather-row-bottom">
+            <span id="weather-humidity">◉ —%</span>
+            <small id="weather-description">CLIMA</small>
           </div>
+          <!-- Elementos ocultos para compatibilidade -->
+          <span id="weather-high" style="display:none">↑ —°</span>
+          <span id="weather-low" style="display:none">↓ —°</span>
         </section>
       </section>
 
@@ -74,7 +72,7 @@
         <article class="metric gpu">
           <div class="metric-head">
             <span class="metric-tag">GPU</span>
-            <span id="gpu-temperature" class="metric-spec">TEMP N/D</span>
+            <span id="gpu-temperature" class="metric-spec">N/D</span>
           </div>
           <div class="metric-core">
             <strong id="gpu-usage" class="metric-val">N/D</strong>

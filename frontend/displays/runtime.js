@@ -73,9 +73,9 @@ function formatGb(bytes) {
 
 function formatNet(bytes) {
   const b = Number(bytes) || 0;
-  if (b >= 1048576) return `${(b / 1048576).toFixed(1)} M`;
-  if (b >= 1024) return `${Math.round(b / 1024)} K`;
-  return "0 K";
+  if (b >= 1048576) return `${(b / 1048576).toFixed(1)}M`;
+  if (b >= 1024) return `${Math.round(b / 1024)}K`;
+  return "0K";
 }
 
 function render({ metrics = {}, weather = null, settings = {}, clock = {}, palette = "mocha" }) {
@@ -120,14 +120,14 @@ function render({ metrics = {}, weather = null, settings = {}, clock = {}, palet
 
   setText("ram-usage", percentage(ram));
   setText("ram-total", metrics.ram_total_bytes > 0
-    ? `${formatGb(metrics.ram_used_bytes)} / ${formatGb(metrics.ram_total_bytes)}`
+    ? `${(metrics.ram_used_bytes / (1024 ** 3)).toFixed(1)} / ${(metrics.ram_total_bytes / (1024 ** 3)).toFixed(0)} GB`
     : "N/D");
   setText("ram-name", settings.ramCustom || "Memória do sistema");
   setMeter("ram-meter", ram);
 
   setText("gpu-usage", percentage(gpu));
   setText("gpu-temperature", metrics.gpu_temperature_c == null
-    ? "TEMP N/D"
+    ? "N/D"
     : `${metrics.gpu_temperature_c}°C`);
   setText("gpu-name", settings.gpuCustom || metrics.gpu_name || "GPU indisponível");
   setMeter("gpu-meter", gpu);
@@ -141,11 +141,11 @@ function render({ metrics = {}, weather = null, settings = {}, clock = {}, palet
 
   const upSpeed = formatNet(metrics.upload_bytes_per_sec);
   const downSpeed = formatNet(metrics.download_bytes_per_sec);
-  setText("upload", `↑ ${upSpeed}/s`);
-  setText("download", `↓ ${downSpeed}/s`);
+  setText("upload", `↑ ${upSpeed}`);
+  setText("download", `↓ ${downSpeed}`);
   setText("network", metrics.network_interfaces > 0 ? "ONLINE" : "OFFLINE");
   setText("vram", metrics.vram_used_bytes != null && metrics.vram_total_bytes
-    ? `${(metrics.vram_used_bytes / (1024 ** 3)).toFixed(1)} / ${(metrics.vram_total_bytes / (1024 ** 3)).toFixed(1)} GB`
+    ? `${(metrics.vram_used_bytes / (1024 ** 3)).toFixed(1)} / ${(metrics.vram_total_bytes / (1024 ** 3)).toFixed(0)} GB`
     : "N/D");
 }
 

@@ -2,7 +2,7 @@
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=480, height=320, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="./hud.css">
     <script src="./runtime.js" defer></script>
     <title>HUD · Cyberpunk OLED · 3.5"</title>
@@ -29,7 +29,7 @@
             <span id="weather-icon">☁</span>
             <b id="weather-temperature">—°C</b>
           </div>
-          <span id="weather-city">SÃO PAULO</span>
+          <span id="weather-city" class="hud-city-txt">SÃO PAULO</span>
           <!-- Elementos preservados para runtime -->
           <small id="weather-description" style="display:none">CLIMA</small>
           <span id="weather-high" style="display:none">↑ —°</span>
@@ -74,7 +74,7 @@
         <article class="hud-card gpu">
           <div class="card-top">
             <span class="card-badge">GPU</span>
-            <span id="gpu-temperature" class="card-spec">TEMP N/D</span>
+            <span id="gpu-temperature" class="card-spec">N/D</span>
           </div>
           <div class="card-center">
             <strong id="gpu-usage">N/D</strong>
@@ -111,4 +111,3 @@
     </main>
   </body>
 </html>
-

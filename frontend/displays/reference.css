@@ -8,7 +8,6 @@
   --surface: #0e2246;
   --surface-raised: #142f5e;
   --border: #21569c;
-  --border-light: rgba(255, 255, 255, 0.12);
   --text: #ffffff;
   --text-dim: #c5daf4;
   --muted: #8caed4;
@@ -23,8 +22,8 @@
 }
 
 html, body {
-  width: 480px;
-  height: 320px;
+  width: 100%;
+  height: 100%;
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -35,12 +34,12 @@ html, body {
 
 .display {
   display: grid;
-  width: 480px;
-  height: 320px;
-  grid-template-columns: 172px 284px;
-  grid-template-rows: 260px 36px;
-  gap: 8px;
-  padding: 8px;
+  width: 100%;
+  height: 100%;
+  grid-template-columns: 38% 1fr;
+  grid-template-rows: 1fr 34px;
+  gap: 6px;
+  padding: 6px;
 }
 
 /* ==========================================================================
@@ -48,37 +47,42 @@ html, body {
    ========================================================================== */
 .overview {
   display: grid;
-  grid-template-rows: 34px 132px 86px;
-  gap: 4px;
+  grid-template-rows: 28px 1fr 68px;
+  gap: 5px;
   min-width: 0;
+  min-height: 0;
 }
 
 /* Badge do Computador */
 .sys-chip {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 10px;
+  gap: 6px;
+  padding: 0 8px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 6px;
+  min-width: 0;
 }
 
 .sys-icon {
   color: var(--warm);
-  font-size: 15px;
+  font-size: 13px;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .sys-meta {
   display: flex;
-  flex-direction: column;
+  align-items: baseline;
+  gap: 5px;
   min-width: 0;
-  line-height: 1.15;
+  overflow: hidden;
+  line-height: 1;
 }
 
 .sys-meta b {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--text);
   white-space: nowrap;
@@ -87,9 +91,11 @@ html, body {
 }
 
 .sys-meta small {
-  font-size: 10.5px;
+  font-size: 10px;
   color: var(--muted);
   font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Caixa do Relógio e Data */
@@ -100,13 +106,14 @@ html, body {
   justify-content: center;
   background: linear-gradient(135deg, rgba(30, 80, 160, 0.4), var(--surface));
   border: 1px solid var(--border);
-  border-radius: 9px;
-  padding: 8px 6px;
+  border-radius: 8px;
+  padding: 4px;
+  min-height: 0;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 #clock {
-  font-size: 44px;
+  font-size: clamp(34px, 8.5vw, 42px);
   font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 0.95;
@@ -115,84 +122,91 @@ html, body {
 }
 
 .date-badge {
-  margin-top: 8px;
-  padding: 3px 10px;
-  font-size: 12px;
+  margin-top: 5px;
+  padding: 2px 8px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.04em;
   color: var(--warm);
   background: rgba(251, 191, 36, 0.12);
   border: 1px solid rgba(251, 191, 36, 0.35);
-  border-radius: 6px;
+  border-radius: 5px;
   text-transform: uppercase;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 95%;
 }
 
 /* Caixa de Clima */
 .weather-box {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 8px 10px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 8px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 7px;
+  min-width: 0;
+  min-height: 0;
 }
 
-.weather-primary {
+.weather-row-top {
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.weather-icon {
-  font-size: 26px;
-  line-height: 1;
-}
-
-#weather-temperature {
-  font-size: 24px;
-  font-weight: 800;
-  color: #ffffff;
-  line-height: 1;
-}
-
-.weather-secondary {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
   min-width: 0;
 }
 
-#weather-city {
-  font-size: 12px;
+.weather-icon {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+#weather-temperature {
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.weather-city {
+  font-size: 11px;
   font-weight: 700;
-  color: var(--text);
+  color: var(--text-dim);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 86px;
+  min-width: 0;
+  flex: 1;
 }
 
-.weather-sub {
+.weather-row-bottom {
   display: flex;
   align-items: center;
-  gap: 5px;
+  justify-content: space-between;
+  gap: 4px;
+  min-width: 0;
 }
 
 #weather-humidity {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   color: #38bdf8;
+  white-space: nowrap;
 }
 
 #weather-description {
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 700;
   color: var(--muted);
   text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ==========================================================================
@@ -200,21 +214,24 @@ html, body {
    ========================================================================== */
 .metrics {
   display: grid;
-  grid-template-rows: repeat(3, 82px);
-  gap: 7px;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 5px;
   min-width: 0;
+  min-height: 0;
 }
 
 .metric {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 7px 11px;
+  padding: 5px 9px;
   background: linear-gradient(90deg, color-mix(in srgb, var(--tone) 14%, var(--surface)), var(--surface) 60%);
   border: 1px solid var(--border);
-  border-left: 5px solid var(--tone);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  border-left: 4px solid var(--tone);
+  border-radius: 7px;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .metric.cpu { --tone: var(--cpu); }
@@ -225,48 +242,60 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
   line-height: 1;
 }
 
 .metric-tag {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.05em;
   color: #ffffff;
   background: color-mix(in srgb, var(--tone) 35%, transparent);
   border: 1px solid var(--tone);
   border-radius: 4px;
-  padding: 2px 7px;
+  padding: 1px 5px;
+  flex-shrink: 0;
 }
 
 .metric-spec {
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+  min-width: 0;
+  flex: 1;
 }
 
 .metric-core {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  min-width: 0;
+  line-height: 1;
 }
 
 .metric-val {
-  font-size: 30px;
+  font-size: clamp(24px, 5.5vw, 28px);
   font-weight: 800;
   line-height: 1;
   color: var(--tone);
-  text-shadow: 0 0 12px color-mix(in srgb, var(--tone) 50%, transparent);
-  min-width: 66px;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--tone) 50%, transparent);
+  flex-shrink: 0;
+  min-width: 54px;
 }
 
 .meter-track {
   flex: 1;
-  height: 9px;
+  height: 8px;
   background: rgba(255, 255, 255, 0.12);
-  border-radius: 6px;
+  border-radius: 5px;
   overflow: hidden;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+  min-width: 30px;
 }
 
 .meter-track i {
@@ -274,19 +303,20 @@ html, body {
   width: 0%;
   height: 100%;
   background: var(--tone);
-  border-radius: 6px;
-  box-shadow: 0 0 8px var(--tone);
+  border-radius: 5px;
+  box-shadow: 0 0 6px var(--tone);
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .metric-foot {
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 600;
   color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1;
+  min-width: 0;
 }
 
 /* ==========================================================================
@@ -295,24 +325,27 @@ html, body {
 .footer-bar {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: 1fr 1.35fr 1fr 1.25fr;
+  grid-template-columns: 1fr 1.35fr 0.9fr 1.15fr;
   align-items: center;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 7px;
   overflow: hidden;
-  height: 36px;
+  height: 34px;
+  min-width: 0;
 }
 
 .foot-col {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
   height: 100%;
-  padding: 0 6px;
+  padding: 0 4px;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   white-space: nowrap;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .foot-col:last-child {
@@ -320,30 +353,39 @@ html, body {
 }
 
 .foot-lbl {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.05em;
   color: #38bdf8;
+  flex-shrink: 0;
 }
 
 .foot-val {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   color: #ffffff;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .net-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  overflow: hidden;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .net-row b {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 #upload { color: #a5f3fc; }
