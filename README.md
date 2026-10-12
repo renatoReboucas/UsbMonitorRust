@@ -15,8 +15,8 @@ cargo run
 ```
 
 O comando compila e abre a janela desktop; não inicia servidor HTTP nem porta
-de rede. Para gerar instaladores MSI/NSIS, instale o Tauri CLI v2 e execute
-`cargo tauri build`.
+de rede. Para gerar instaladores MSI/NSIS, instale o Tauri CLI v2
+(`cargo install tauri-cli --version "^2"`) e execute `cargo tauri build`.
 
 ## Recursos
 

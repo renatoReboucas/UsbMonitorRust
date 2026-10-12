@@ -18,3 +18,9 @@ Desktop.ini
 # Logs and editor swap files
 *.log
 *.swp
+
+# Generated Windows compiler and installer artifacts
+*.pdb
+*.ilk
+*.exp
+*.msi
