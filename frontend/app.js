@@ -63,6 +63,7 @@ let currentDeviceStatus = null;
 let displayRefreshTimer = null;
 let displayTransmitting = false;
 let frameSendRunning = false;
+let chartPaused = false;
 
 function formatGb(bytes) {
   return (bytes / (1024 ** 3)).toFixed(1);
@@ -79,8 +80,24 @@ function notice(message, type = "") {
 
 function setPage(name) {
   document.querySelectorAll(".page").forEach((el) => el.classList.toggle("active", el.id === `page-${name}`));
-  document.querySelectorAll(".nav-item").forEach((el) => el.classList.toggle("active", el.dataset.page === name));
+  document.querySelectorAll(".nav-item").forEach((el) => {
+    const active = el.dataset.page === name;
+    el.classList.toggle("active", active);
+    if (active) el.setAttribute("aria-current", "page");
+    else el.removeAttribute("aria-current");
+  });
+  $("#topbar-page").textContent = ({ monitor: "Visão geral", themes: "Layouts", settings: "Configurações" })[name] || "UsbMonitor";
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function setTransmissionState(message, state = "loading") {
+  const status = $("#transmission-state");
+  status.hidden = !message;
+  status.classList.toggle("is-loading", state === "loading");
+  status.classList.toggle("is-success", state === "success");
+  status.classList.toggle("is-error", state === "error");
+  status.setAttribute("aria-busy", String(state === "loading" && Boolean(message)));
+  $("#transmission-message").textContent = message;
 }
 
 function sendDisplayState() {
@@ -107,7 +124,11 @@ async function chooseTheme(id) {
   if (!selectedTemplate) return;
   settings.displayTemplate = selectedTemplate;
   $("#quick-theme").value = selectedTemplate;
-  document.querySelectorAll(".theme-card").forEach((card) => card.classList.toggle("selected", card.dataset.template === selectedTemplate));
+  document.querySelectorAll(".theme-card").forEach((card) => {
+    const active = card.dataset.template === selectedTemplate;
+    card.classList.toggle("selected", active);
+    card.setAttribute("aria-pressed", String(active));
+  });
   const frame = $("#display-frame");
   if (frame.dataset.template !== selectedTemplate) {
     const request = ++templateLoadRequest;
@@ -134,11 +155,17 @@ function applyPalette(name) {
   for (const [variable, value] of Object.entries({
     "--bg": palette.base,
     "--panel": palette.mantle,
+    "--panel-raised": palette.crust,
+    "--surface": palette.surface0,
     "--border": palette.surface0,
     "--text": palette.text,
     "--muted": palette.subtext0,
+    "--subtle": palette.subtext0,
     "--accent": settings.accentColor || palette.mauve,
     "--green": palette.green,
+    "--metric-cpu": palette.green,
+    "--metric-ram": palette.pink,
+    "--metric-gpu": palette.blue,
     "--screen-base": palette.base,
     "--screen-surface": palette.mantle,
     "--screen-border": palette.blue,
@@ -181,6 +208,7 @@ async function renderThemes() {
     card.type = "button";
     card.className = "theme-card";
     card.dataset.template = template.id;
+    card.setAttribute("aria-pressed", String(template.id === selectedTemplate));
     const image = document.createElement("span");
     image.className = "theme-image";
     image.classList.add(`template-${template.id}`);
@@ -217,13 +245,14 @@ function updateStatus(data) {
   $("#device-name").textContent = data.description || (connected ? "Display Turing 3,5″" : "Display não encontrado");
   $("#device-detail").textContent = data.port ? `${data.port} · VID_1A86 · PID_5722` : "Conecte o display USB (VID_1A86 · PID_5722)";
   $("#connect").disabled = frameSendRunning || (!connected && !data.port_open);
-  $("#connect").textContent = frameSendRunning
+  $("#connect").querySelector(".button-label").textContent = frameSendRunning
     ? "Enviando tela…"
     : displayTransmitting
       ? "Parar transmissão"
       : data.port_open
         ? "Fechar porta COM"
         : "Transmitir para display";
+  $("#connect").querySelector("svg").hidden = frameSendRunning || displayTransmitting || data.port_open;
   $("#send-now").disabled = frameSendRunning || !data.port_open;
   const select = $("#port-select");
   select.replaceChildren(new Option(data.port || "Dispositivo não encontrado", data.port || ""));
@@ -294,16 +323,82 @@ function updateMetrics(metrics) {
     timestamp: metrics.timestamp_unix_ms,
   });
   if (historySamples.length > 120) historySamples.shift();
-  $("#history-range").textContent = `${historySamples.length} amostras · últimos ${Math.max(1, Math.round(historySamples.length / 60))} min`;
-  drawHistory();
+  if (!chartPaused) {
+    $("#history-range").textContent = `${historySamples.length} amostras · últimos ${Math.max(1, Math.round(historySamples.length / 60))} min`;
+    updateChartSummary();
+    drawHistory();
+  }
   $("#metrics-status").textContent = `Dados do PC atualizados às ${new Date(metrics.timestamp_unix_ms).toLocaleTimeString("pt-BR")}`;
-  $("#metrics-status").classList.add("metrics-live");
+  updateMetricsFreshness();
   updateCustomInfo();
   const alert = $("#notice");
   if (alert.classList.contains("metrics-error")) alert.hidden = true;
 }
 
+function updateMetricsFreshness() {
+  const timestamp = latestMetrics?.timestamp_unix_ms;
+  const liveTag = $(".chart-live-tag");
+  if (!timestamp) {
+    liveTag.classList.add("is-stale");
+    $("#chart-live-label").textContent = chartPaused ? "PAUSADO" : "AGUARDANDO DADOS";
+    document.querySelectorAll(".live-pill").forEach((pill) => {
+      pill.classList.add("is-stale");
+      pill.querySelector("span").textContent = "AGUARDANDO";
+    });
+    return;
+  }
+  const ageSeconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000));
+  const fresh = ageSeconds <= 5;
+  const status = $("#metrics-status");
+  status.parentElement.classList.toggle("is-stale", !fresh);
+  status.classList.toggle("metrics-live", fresh);
+  status.classList.toggle("metrics-stale", !fresh);
+  status.previousElementSibling.classList.toggle("online", fresh);
+  liveTag.classList.toggle("is-stale", !fresh);
+  $("#chart-live-label").textContent = chartPaused
+    ? "PAUSADO"
+    : fresh
+      ? "AO VIVO · 1 S"
+      : "DADOS DESATUALIZADOS";
+  document.querySelectorAll(".live-pill").forEach((pill) => {
+    pill.classList.toggle("is-stale", !fresh);
+    pill.querySelector("span").textContent = fresh ? "AO VIVO" : "SEM SINAL";
+  });
+  status.textContent = fresh
+    ? `Telemetria atualizada às ${new Date(timestamp).toLocaleTimeString("pt-BR")}`
+    : `Telemetria desatualizada · última leitura há ${ageSeconds} s`;
+}
+
+function updateChartSummary() {
+  const sample = historySamples.at(-1);
+  if (!sample) return;
+  const value = (reading) => reading === null ? "N/D" : `${Math.round(reading)}%`;
+  $("#chart-summary").textContent = `Leitura mais recente: CPU ${value(sample.cpu)}, memória ${value(sample.ram)} e GPU ${value(sample.gpu)}. CPU em linha contínua, memória tracejada e GPU pontilhada.`;
+}
+
+function setChartPaused(paused) {
+  chartPaused = paused;
+  const button = $("#chart-toggle");
+  button.setAttribute("aria-pressed", String(paused));
+  button.setAttribute("aria-label", paused ? "Retomar atualização do gráfico" : "Pausar atualização do gráfico");
+  button.querySelector("span").textContent = paused ? "Retomar" : "Pausar";
+  button.querySelector("svg").innerHTML = paused
+    ? '<path d="m8 5 11 7-11 7z"/>'
+    : '<path d="M9 5v14m6-14v14"/>';
+  $(".chart-live-tag").classList.toggle("is-paused", paused);
+  updateMetricsFreshness();
+  $("#history-range").textContent = paused
+    ? `${historySamples.length} amostras · pausado`
+    : `${historySamples.length} amostras · últimos ${Math.max(1, Math.round(historySamples.length / 60))} min`;
+  if (!paused) {
+    $("#history-range").textContent = `${historySamples.length} amostras · últimos ${Math.max(1, Math.round(historySamples.length / 60))} min`;
+    updateChartSummary();
+    drawHistory();
+  }
+}
+
 function drawHistory() {
+  if (chartPaused) return;
   const canvas = $("#history-chart");
   const context = canvas.getContext("2d");
   const bounds = canvas.getBoundingClientRect();
@@ -316,8 +411,9 @@ function drawHistory() {
   const height = bounds.height;
   context.clearRect(0, 0, width, height);
   context.font = "10px Segoe UI, sans-serif";
-  context.fillStyle = "#8190a5";
-  context.strokeStyle = "#253247";
+  const styles = getComputedStyle(document.documentElement);
+  context.fillStyle = styles.getPropertyValue("--muted").trim();
+  context.strokeStyle = styles.getPropertyValue("--border").trim();
   context.lineWidth = 1;
   for (let level = 0; level <= 100; level += 25) {
     const y = height - 18 - (height - 28) * level / 100;
@@ -327,9 +423,14 @@ function drawHistory() {
     context.stroke();
     context.fillText(`${level}%`, 0, y + 3);
   }
-  for (const [key, color] of [["cpu", "#44ebba"], ["ram", "#d789f5"], ["gpu", "#38d9fa"]]) {
+  for (const [key, color, dash] of [
+    ["cpu", styles.getPropertyValue("--metric-cpu").trim(), []],
+    ["ram", styles.getPropertyValue("--metric-ram").trim(), [6, 4]],
+    ["gpu", styles.getPropertyValue("--metric-gpu").trim(), [2, 4]],
+  ]) {
     context.strokeStyle = color;
     context.lineWidth = 2;
+    context.setLineDash(dash);
     context.beginPath();
     let started = false;
     historySamples.forEach((sample, index) => {
@@ -348,6 +449,7 @@ function drawHistory() {
     });
     context.stroke();
   }
+  context.setLineDash([]);
 }
 
 async function refreshStatus() {
@@ -372,6 +474,7 @@ async function refreshMetrics() {
     $("#notice").classList.add("metrics-error");
   } finally {
     metricsRequestRunning = false;
+    updateMetricsFreshness();
   }
 }
 
@@ -501,11 +604,15 @@ async function sendDisplayFrame() {
   frameSendRunning = true;
   if (currentDeviceStatus) updateStatus(currentDeviceStatus);
   try {
+    setTransmissionState("Preparando e capturando o layout do display…");
     const imagePng = await captureDisplayPng();
+    setTransmissionState("Enviando quadro completo para o display. Isso pode levar cerca de 30 segundos…");
     const result = await invoke("send_display_frame", { imagePng });
+    setTransmissionState(`Tela enviada com sucesso (${result.width} × ${result.height}). A próxima atualização será automática em 1 minuto.`, "success");
     notice(`Layout enviado ao display (${result.width} × ${result.height}, RGB565). Próxima atualização automática em 1 minuto.`);
     return result;
   } catch (error) {
+    setTransmissionState(`Falha na transmissão: ${error}`, "error");
     if (displayTransmitting) {
       clearInterval(displayRefreshTimer);
       displayRefreshTimer = null;
@@ -532,8 +639,10 @@ async function togglePort() {
     displayTransmitting = false;
     try {
       updateStatus(await invoke("disconnect_serial"));
+      setTransmissionState("Transmissão interrompida. A porta serial foi fechada.", "success");
       notice("Transmissão interrompida e porta COM fechada.");
     } catch (error) {
+      setTransmissionState(`Não foi possível fechar a porta COM: ${error}`, "error");
       notice(`Não foi possível fechar a porta COM: ${error}`, "error");
     }
     return;
@@ -541,6 +650,7 @@ async function togglePort() {
 
   let opened = false;
   try {
+    setTransmissionState(`Abrindo a porta ${$("#port-select").value} e preparando a transmissão…`);
     const data = await invoke("connect_serial", {
       port: $("#port-select").value,
       baudRate: 115200,
@@ -553,6 +663,7 @@ async function togglePort() {
       sendDisplayFrame().catch((error) => console.error("Falha na atualização automática do display:", error));
     }, DISPLAY_REFRESH_MS);
   } catch (error) {
+    setTransmissionState(`Não foi possível iniciar a transmissão: ${error}`, "error");
     clearInterval(displayRefreshTimer);
     displayRefreshTimer = null;
     displayTransmitting = false;
@@ -630,6 +741,7 @@ async function restoreHistory() {
   if (historySamples.length > 120) historySamples.splice(0, historySamples.length - 120);
   if (historySamples.length) {
     $("#history-range").textContent = `${historySamples.length} amostras · últimos ${Math.max(1, Math.round(historySamples.length / 60))} min`;
+    updateChartSummary();
     drawHistory();
   }
 }
@@ -651,6 +763,7 @@ document.querySelectorAll(".nav-item").forEach((el) => el.addEventListener("clic
 document.querySelectorAll("[data-go]").forEach((el) => el.addEventListener("click", () => setPage(el.dataset.go)));
 $("#quick-theme").addEventListener("change", (event) => chooseTheme(event.target.value));
 $("#refresh").addEventListener("click", refreshStatus);
+$("#chart-toggle").addEventListener("click", () => setChartPaused(!chartPaused));
 $("#connect").addEventListener("click", togglePort);
 $("#send-now").addEventListener("click", () => {
   sendDisplayFrame().catch((error) => console.error("Falha no envio manual ao display:", error));
@@ -674,7 +787,7 @@ $("#palette").addEventListener("change", (event) => {
   updateCustomInfo();
 }));
 $("#search-city").addEventListener("click", () => refreshWeather($("#city").value.trim()));
-$("#save").addEventListener("click", async () => {
+async function savePreferences() {
   try {
     const saved = await invoke("save_config", { config: readSettings() });
     applySettings(saved);
@@ -683,7 +796,9 @@ $("#save").addEventListener("click", async () => {
   } catch (error) {
     notice(`Não foi possível salvar as preferências: ${error}`, "error");
   }
-});
+}
+$("#save").addEventListener("click", savePreferences);
+$("#save-top").addEventListener("click", savePreferences);
 $("#export-logs").addEventListener("click", async () => {
   try {
     const path = await invoke("export_logs");

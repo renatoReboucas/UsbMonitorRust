@@ -11,83 +11,91 @@
   <body>
     <div class="shell">
       <aside class="sidebar">
-        <a class="brand" href="#"><span class="brand-mark">T</span><span><b>TURING</b><small>SMART SCREEN</small></span></a>
-        <span class="nav-label">DISPOSITIVO</span>
-        <nav aria-label="Navegação">
-          <button class="nav-item active" data-page="monitor">◫ <span>Monitor</span></button>
-          <button class="nav-item" data-page="themes">▧ <span>Temas</span></button>
-          <button class="nav-item" data-page="settings">⚙ <span>Configurações</span></button>
+        <a class="brand" href="#" aria-label="Turing Smart Screen, início">
+          <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M7 8h18M16 8v17m-6 0h12"/></svg></span>
+          <span><b>TURING</b><small>SMART SCREEN</small></span>
+        </a>
+        <span class="nav-label">ESPAÇO DE TRABALHO</span>
+        <nav aria-label="Navegação principal">
+          <button class="nav-item active" data-page="monitor" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/></svg><span>Visão geral</span></button>
+          <button class="nav-item" data-page="themes"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg><span>Layouts</span></button>
+          <button class="nav-item" data-page="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.1.9-1.5 2.6-1.4-.6a8 8 0 0 1-1.7 1l-.2 1.5h-3l-.2-1.5a8 8 0 0 1-1.7-1l-1.4.6L8 16l1.2-.9a7 7 0 0 1 0-2L8 12.2l1.5-2.6 1.4.6a8 8 0 0 1 1.7-1l.2-1.5h3l.2 1.5a8 8 0 0 1 1.7 1l1.4-.6 1.5 2.6-1.2.9a7 7 0 0 1 0 2Z" transform="translate(-1 -1) scale(1.08)"/></svg><span>Configurações</span></button>
         </nav>
         <div class="sidebar-bottom">
-          <div class="connection"><i id="side-dot"></i><span><b id="side-status">Procurando display</b><small id="side-port">USB · VID_1A86</small></span></div>
-          <small class="version">TAURI · 0.2.0</small>
+          <div class="connection"><span class="connection-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 19v2m8-2v2M8 9h8m-8 4h5"/></svg></span><i id="side-dot"></i><span><b id="side-status">Procurando display</b><small id="side-port">USB · VID_1A86</small></span></div>
+          <small class="version">USBMONITOR <span>·</span> TAURI 0.2.0</small>
         </div>
       </aside>
       <main>
-        <header class="topbar"><div class="mobile-brand"><span class="brand-mark">T</span><b>TURING</b></div><span>GERENCIADOR DE DISPLAY</span><button id="refresh" title="Atualizar dispositivo">↻</button></header>
+        <header class="topbar"><div class="mobile-brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M7 8h18M16 8v17m-6 0h12"/></svg></span><b>TURING</b></div><div class="topbar-context"><span class="topbar-kicker">USBMONITOR</span><span class="topbar-divider">/</span><span id="topbar-page">Visão geral</span></div><button id="refresh" title="Atualizar dispositivo" aria-label="Atualizar estado do dispositivo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.8-2L20 12M4 12l2.6 5a7 7 0 0 0 11.8-2"/></svg></button></header>
         <section class="page active" id="page-monitor">
-          <div class="heading"><div><label>VISÃO GERAL</label><h1>Monitor</h1><p>Métricas em tempo real deste computador.</p></div><span class="live"><i id="main-dot"></i><span id="main-status">Verificando dispositivo</span></span></div>
+          <div class="heading"><div><label>PAINEL DO SISTEMA</label><h1>Visão geral</h1><p>Acompanhe o computador e controle seu display em um só lugar.</p></div><span class="live"><i id="main-dot"></i><span id="main-status">Verificando dispositivo</span></span></div>
           <div id="notice" class="notice" role="status" hidden></div>
-          <section class="preview panel main-display-preview" aria-label="Prévia fiel da tela 3,5 polegadas">
-            <div class="display-preview-heading"><div><label>LAYOUT DO DISPLAY · 480 × 320</label><h2>Tela 3,5″</h2></div><span class="tag" id="weather-city-label">SÃO PAULO, BRASIL</span></div>
-            <div class="screen"><iframe id="display-frame" title="Prévia do layout HTML do display" sandbox="allow-scripts allow-same-origin"></iframe></div>
-            <div class="display-preview-caption"><span>↗</span><p>Prévia ao vivo no formato nativo do display. O layout selecionado é rasterizado e enviado à porta COM em RGB565.</p></div>
+          <section class="device panel" aria-label="Conexão do display USB">
+            <div class="device-info"><span class="device-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 22h8m-4-4v4"/></svg></span><div><label>DISPLAY USB 3,5″</label><h2 id="device-name">Procurando dispositivo…</h2><p id="device-detail">Identificação USB: VID_1A86 · PID_5722</p></div></div>
+            <div class="device-actions">
+              <label class="field"><span>PORTA</span><select id="port-select" disabled><option>Procurando…</option></select></label>
+              <div class="serial-mode"><span>PROTOCOLO</span><strong>115200 baud · 8N1</strong><small>DTR/RTS ativos · sem handshake</small></div>
+              <button class="primary" id="connect" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7z"/></svg><span class="button-label">Transmitir para display</span></button>
+              <button class="secondary" id="send-now" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.8-2L20 12M4 12l2.6 5a7 7 0 0 0 11.8-2"/></svg><span class="button-label">Enviar agora</span></button>
+            </div>
+            <div id="transmission-state" class="transmission-state" role="status" aria-live="polite" hidden><span class="transmission-spinner" aria-hidden="true"></span><span id="transmission-message"></span></div>
+            <small class="serial-hint">A primeira tela pode levar cerca de 30 segundos; depois ela é atualizada a cada minuto. Feche o programa original do display se ele estiver usando a mesma porta COM.</small>
           </section>
-          <section class="live-metrics" aria-label="Métricas atuais do computador">
+          <div class="dashboard-grid">
+            <section class="preview panel main-display-preview" aria-label="Prévia fiel da tela 3,5 polegadas">
+              <div class="display-preview-heading"><div><label>DISPLAY CONECTADO</label><h2>Prévia do layout</h2></div><span class="tag" id="weather-city-label">SÃO PAULO, BRASIL</span></div>
+              <div class="screen"><iframe id="display-frame" title="Prévia do layout HTML do display" sandbox="allow-scripts allow-same-origin"></iframe></div>
+              <div class="display-preview-caption"><span class="preview-indicator"></span><p>Visualização em tempo real <span>·</span> 480 × 320 px</p><button class="text-action" data-go="themes">Alterar layout <span aria-hidden="true">→</span></button></div>
+            </section>
+            <section class="live-metrics" aria-label="Métricas atuais do computador">
             <article class="live-metric-card cpu-live-card">
-              <div class="live-metric-heading"><span class="live-metric-icon">▦</span><span><b>PROCESSADOR</b><small id="home-cpu-name">Carregando CPU…</small></span><span class="live-pill">AO VIVO</span></div>
+              <div class="live-metric-heading"><span class="live-metric-icon">CPU</span><span><b>PROCESSADOR</b><small id="home-cpu-name">Carregando CPU…</small></span><span class="live-pill is-stale"><i></i><span>AGUARDANDO</span></span></div>
               <div class="live-metric-value"><strong id="home-cpu-usage">—%</strong><span id="home-cpu-frequency">— GHz</span></div>
               <div class="live-progress"><span id="home-cpu-bar"></span></div>
               <small class="live-metric-foot">UTILIZAÇÃO TOTAL DA CPU</small>
             </article>
             <article class="live-metric-card ram-live-card">
-              <div class="live-metric-heading"><span class="live-metric-icon">▤</span><span><b>MEMÓRIA RAM</b><small id="home-ram-name">Memória do sistema</small></span><span class="live-pill">AO VIVO</span></div>
+              <div class="live-metric-heading"><span class="live-metric-icon">RAM</span><span><b>MEMÓRIA RAM</b><small id="home-ram-name">Memória do sistema</small></span><span class="live-pill is-stale"><i></i><span>AGUARDANDO</span></span></div>
               <div class="live-metric-value"><strong id="home-ram-usage">—%</strong><span id="home-ram-total">— / — GB</span></div>
               <div class="live-progress"><span id="home-ram-bar"></span></div>
               <small class="live-metric-foot">MEMÓRIA UTILIZADA</small>
             </article>
             <article class="live-metric-card gpu-live-card">
-              <div class="live-metric-heading"><span class="live-metric-icon">▣</span><span><b>PLACA DE VÍDEO</b><small id="home-gpu-name">Carregando GPU…</small></span><span class="live-pill">AO VIVO</span></div>
+              <div class="live-metric-heading"><span class="live-metric-icon">GPU</span><span><b>PLACA DE VÍDEO</b><small id="home-gpu-name">Carregando GPU…</small></span><span class="live-pill is-stale"><i></i><span>AGUARDANDO</span></span></div>
               <div class="live-metric-value"><strong id="home-gpu-usage">—%</strong><span id="home-gpu-temperature">—°C</span></div>
               <div class="live-progress"><span id="home-gpu-bar"></span></div>
               <small id="home-vram-total" class="live-metric-foot">VRAM: aguardando leitura</small>
             </article>
-          </section>
+            </section>
+          </div>
           <div class="live-metrics-updated"><span class="status-dot online"></span><span id="metrics-status">Consultando métricas do computador…</span></div>
           <section class="history panel">
-            <div class="history-heading"><div><label>HISTÓRICO</label><h2>Últimos minutos</h2></div><span class="tag">AMOSTRAS DE 1 S</span></div>
-            <canvas id="history-chart" role="img" aria-label="Gráfico histórico de uso de CPU, RAM e GPU"></canvas>
+            <div class="history-heading"><div><label>DESEMPENHO</label><h2>Atividade recente</h2><p>Utilização dos recursos ao longo do tempo.</p></div><div class="chart-actions"><span class="tag chart-live-tag is-stale"><i></i><span id="chart-live-label">AGUARDANDO DADOS</span></span><button class="secondary chart-toggle" id="chart-toggle" type="button" aria-pressed="false" aria-label="Pausar atualização do gráfico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5v14m6-14v14"/></svg><span>Pausar</span></button></div></div>
+            <p id="chart-summary" class="chart-summary">Aguardando a primeira leitura de CPU, memória e GPU.</p>
+            <canvas id="history-chart" role="img" aria-label="Gráfico histórico de uso de CPU, RAM e GPU" aria-describedby="chart-summary"></canvas>
             <div class="chart-legend"><span class="legend-cpu">CPU</span><span class="legend-ram">RAM</span><span class="legend-gpu">GPU</span><small id="history-range">Aguardando amostras</small></div>
+            <p class="chart-note">Pausar interrompe apenas o desenho do gráfico; a coleta das métricas continua em segundo plano.</p>
           </section>
-          <section class="device panel">
-            <div class="device-info"><span class="device-icon">▣</span><div><label>DISPLAY USB 3,5″</label><h2 id="device-name">Procurando dispositivo…</h2><p id="device-detail">Identificação USB: VID_1A86 · PID_5722</p></div></div>
-            <div class="device-actions">
-              <label class="field"><span>PORTA</span><select id="port-select" disabled><option>Procurando…</option></select></label>
-              <div class="serial-mode"><span>PROTOCOLO</span><strong>115200 baud · 8N1</strong><small>DTR/RTS ativos · sem handshake</small></div>
-              <button class="primary" id="connect" disabled>Transmitir para display</button>
-              <button class="secondary" id="send-now" disabled>Enviar agora</button>
-            </div>
-            <small class="serial-hint">A primeira tela pode levar cerca de 30 segundos; depois ela é atualizada a cada minuto. Feche o programa original do display se ele estiver usando a mesma porta COM.</small>
-          </section>
-          <div class="section-heading"><div><label>PERSONALIZAÇÃO</label><h2>Configuração rápida</h2></div><button class="link" data-go="settings">Todas as opções →</button></div>
+          <div class="section-heading"><div><label>PERSONALIZAÇÃO</label><h2>Acesso rápido</h2></div><button class="link" data-go="settings">Todas as opções <span aria-hidden="true">→</span></button></div>
           <div class="quick-grid">
-            <section class="panel quick"><span class="tile-icon cyan">◈</span><label class="field"><span>LAYOUT HTML DO DISPLAY</span><select id="quick-theme"></select></label><button class="subtle" data-go="themes">Explorar layouts</button></section>
-            <section class="panel quick"><span class="tile-icon purple">◐</span><label class="field"><span>BRILHO <output id="brightness-value">80%</output></span><input id="brightness" type="range" min="0" max="100" value="80"></label><small>Aplica à imagem, não à iluminação do painel.</small></section>
-            <section class="panel quick"><span class="tile-icon blue">⟳</span><label class="field"><span>ROTAÇÃO DA TELA</span><select id="rotation"><option value="0">0° · Normal</option><option value="180">180° · Invertida</option></select></label><small>Rotação aplicada também ao quadro enviado.</small></section>
+            <section class="panel quick"><span class="tile-icon cyan" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg></span><label class="field"><span>LAYOUT HTML DO DISPLAY</span><select id="quick-theme"></select></label><button class="subtle" data-go="themes">Explorar layouts</button></section>
+            <section class="panel quick"><span class="tile-icon purple" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg></span><label class="field"><span>BRILHO <output id="brightness-value">80%</output></span><input id="brightness" type="range" min="0" max="100" value="80"></label><small>Aplica à imagem, não à iluminação do painel.</small></section>
+            <section class="panel quick"><span class="tile-icon blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15.4-6.4L21 8m0-5v5h-5M21 12a9 9 0 0 1-15.4 6.4L3 16m0 5v-5h5"/></svg></span><label class="field"><span>ROTAÇÃO DA TELA</span><select id="rotation"><option value="0">0° · Normal</option><option value="180">180° · Invertida</option></select></label><small>Rotação aplicada também ao quadro enviado.</small></section>
           </div>
-          <div class="section-heading"><div><label>TELA SECUNDÁRIA</label><h2>Pré-visualização</h2></div><span class="tag">TEMA DO DISPLAY</span></div>
-          <footer>Interface para o display Turing 3,5″ <span>·</span> Transmissão serial do layout HTML ativo.</footer>
+          <footer>USBMonitor <span>·</span> Monitoramento local e transmissão para display USB.</footer>
         </section>
         <section class="page" id="page-themes">
-          <div class="heading"><div><label>APARÊNCIA</label><h1>Layouts HTML</h1><p>Escolha um arquivo HTML para a prévia 480 × 320 do display.</p></div></div>
+          <div class="heading"><div><label>DISPLAY USB · 480 × 320</label><h1>Layouts</h1><p>Escolha a experiência exibida no seu display.</p></div><button class="secondary page-back" data-go="monitor">Voltar ao painel</button></div>
+          <div class="page-intro"><span class="intro-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg></span><div><b>Seu display, do seu jeito</b><p>Selecione um layout pronto ou crie o seu em HTML e CSS. A escolha é usada na prévia e na transmissão USB.</p></div></div>
           <div id="theme-grid" class="theme-grid"></div>
           <section class="panel template-help"><b>Como criar um layout</b><p>Crie um arquivo HTML em <code>frontend/displays/</code> e registre o identificador e o nome em <code>frontend/displays/templates.json</code>. Use <code>reference.html</code> como exemplo e reutilize <code>runtime.js</code> para receber as métricas ao vivo. Depois reinicie o app e selecione o novo layout.</p><p>O HTML selecionado é rasterizado no tamanho 480 × 320 e enviado ao display; para imagens em CSS, prefira recursos embutidos no próprio arquivo.</p></section>
         </section>
         <section class="page" id="page-settings">
-          <div class="heading"><div><label>PREFERÊNCIAS</label><h1>Configurações</h1><p>Ajuste as opções gerais do Turing Smart Screen.</p></div></div>
+          <div class="heading"><div><label>PREFERÊNCIAS DO APLICATIVO</label><h1>Configurações</h1><p>Personalize a experiência, os sensores e o comportamento do app.</p></div><button class="primary save top-save" id="save-top">Salvar alterações</button></div>
           <div class="settings-grid">
             <section class="panel settings">
-              <div><label>DISPLAY</label><h2>Sensores e informações</h2></div>
+              <div class="settings-title"><span class="settings-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg></span><span><label>MONITORAMENTO</label><h2>Sensores e informações</h2></span></div>
               <label class="field"><span>SENSOR DE TEMPERATURA DA CPU</span><select id="sensor"><option>CPU (Tctl/Tdie)</option><option>CPU Package</option><option>CPU Core</option></select></label>
               <label class="field"><span>ADAPTADOR DE REDE</span><select id="network"><option>Detecção automática</option></select></label>
               <fieldset class="custom-info">
@@ -101,14 +109,14 @@
               <small id="city-result">Clima público via Open-Meteo; a cidade configurada é enviada ao serviço para a consulta.</small>
             </section>
             <section class="panel settings">
-              <div><label>APLICATIVO</label><h2>Inicialização e aparência</h2></div>
+              <div class="settings-title"><span class="settings-icon purple" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8m0-12.8L5.6 18.4"/></svg></span><span><label>APLICATIVO</label><h2>Inicialização e aparência</h2></span></div>
               <label class="toggle"><span><b>Iniciar com o Windows</b><small>Executa este aplicativo ao entrar na sua conta.</small></span><input id="start-with-windows" type="checkbox"></label>
               <label class="toggle"><span><b>Desativar atualizações</b><small>Esta versão não executa atualizações.</small></span><input type="checkbox" checked disabled></label>
               <label class="field"><span>COR DA BARRA DE STATUS</span><span class="color"><input id="bar-color" type="color" value="#35d7e9"> Cor de destaque</span></label>
               <label class="field"><span>PALETA DE CORES · CATPPUCCIN</span><select id="palette"><option value="latte">Latte · claro</option><option value="frappe">Frappé</option><option value="macchiato">Macchiato</option><option value="mocha">Mocha</option></select></label>
               <label class="toggle"><span><b>Espelhar orientação</b><small>Prévia da inversão do display.</small></span><input id="mirror" type="checkbox"></label>
               <button class="primary save" id="save">Salvar preferências</button>
-              <button class="secondary" id="export-logs">Exportar histórico CSV</button>
+              <button class="secondary export-button" id="export-logs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M5 17v4h14v-4"/></svg>Exportar histórico CSV</button>
             </section>
           </div>
         </section>
