@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0b1019">
+    <title>Turing Smart Screen</title>
+    <link rel="stylesheet" href="/styles.css?v=home-metrics-20261011-3">
+    <script src="/app.js?v=home-metrics-20261011-3" defer></script>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <a class="brand" href="#"><span class="brand-mark">T</span><span><b>TURING</b><small>SMART SCREEN</small></span></a>
+        <span class="nav-label">DISPOSITIVO</span>
+        <nav aria-label="Navegação">
+          <button class="nav-item active" data-page="monitor">◫ <span>Monitor</span></button>
+          <button class="nav-item" data-page="themes">▧ <span>Temas</span></button>
+          <button class="nav-item" data-page="settings">⚙ <span>Configurações</span></button>
+        </nav>
+        <div class="sidebar-bottom">
+          <div class="connection"><i id="side-dot"></i><span><b id="side-status">Procurando display</b><small id="side-port">USB · VID_1A86</small></span></div>
+          <small class="version">INTERFACE RUST · 0.1.0</small>
+        </div>
+      </aside>
+      <main>
+        <header class="topbar"><div class="mobile-brand"><span class="brand-mark">T</span><b>TURING</b></div><span>GERENCIADOR DE DISPLAY</span><button id="refresh" title="Atualizar dispositivo">↻</button></header>
+        <section class="page active" id="page-monitor">
+          <div class="heading"><div><label>VISÃO GERAL</label><h1>Monitor</h1><p>Métricas em tempo real deste computador.</p></div><span class="live"><i id="main-dot"></i><span id="main-status">Verificando dispositivo</span></span></div>
+          <div id="notice" class="notice" role="status" hidden></div>
+          <section class="live-metrics" aria-label="Métricas atuais do computador">
+            <article class="live-metric-card cpu-live-card">
+              <div class="live-metric-heading"><span class="live-metric-icon">▦</span><span><b>PROCESSADOR</b><small id="home-cpu-name">Carregando CPU…</small></span><span class="live-pill">AO VIVO</span></div>
+              <div class="live-metric-value"><strong id="home-cpu-usage">—%</strong><span id="home-cpu-frequency">— GHz</span></div>
+              <div class="live-progress"><span id="home-cpu-bar"></span></div>
+              <small class="live-metric-foot">UTILIZAÇÃO TOTAL DA CPU</small>
+            </article>
+            <article class="live-metric-card ram-live-card">
+              <div class="live-metric-heading"><span class="live-metric-icon">▤</span><span><b>MEMÓRIA RAM</b><small id="home-ram-name">Memória do sistema</small></span><span class="live-pill">AO VIVO</span></div>
+              <div class="live-metric-value"><strong id="home-ram-usage">—%</strong><span id="home-ram-total">— / — GB</span></div>
+              <div class="live-progress"><span id="home-ram-bar"></span></div>
+              <small class="live-metric-foot">MEMÓRIA UTILIZADA</small>
+            </article>
+            <article class="live-metric-card gpu-live-card">
+              <div class="live-metric-heading"><span class="live-metric-icon">▣</span><span><b>PLACA DE VÍDEO</b><small id="home-gpu-name">Carregando GPU…</small></span><span class="live-pill">AO VIVO</span></div>
+              <div class="live-metric-value"><strong id="home-gpu-usage">—%</strong><span id="home-gpu-temperature">—°C</span></div>
+              <div class="live-progress"><span id="home-gpu-bar"></span></div>
+              <small id="home-vram-total" class="live-metric-foot">VRAM: aguardando leitura</small>
+            </article>
+          </section>
+          <div class="live-metrics-updated"><span class="status-dot online"></span><span id="metrics-status">Consultando métricas do computador…</span></div>
+          <section class="device panel">
+            <div class="device-info"><span class="device-icon">▣</span><div><label>DISPLAY USB 3,5″</label><h2 id="device-name">Procurando dispositivo…</h2><p id="device-detail">Identificação USB: VID_1A86 · PID_5722</p></div></div>
+            <div class="device-actions">
+              <label class="field"><span>PORTA</span><select id="port-select" disabled><option>Procurando…</option></select></label>
+              <label class="field"><span>VELOCIDADE SERIAL</span><select id="baud"><option value="115200">115200 baud</option><option value="9600">9600 baud</option><option value="57600">57600 baud</option><option value="38400">38400 baud</option><option value="19200">19200 baud</option></select></label>
+              <button class="primary" id="connect" disabled>Abrir serial</button>
+            </div>
+            <small class="serial-hint">As métricas do computador funcionam sem abrir a porta serial.</small>
+          </section>
+          <div class="section-heading"><div><label>PERSONALIZAÇÃO</label><h2>Configuração rápida</h2></div><button class="link" data-go="settings">Todas as opções →</button></div>
+          <div class="quick-grid">
+            <section class="panel quick"><span class="tile-icon cyan">◈</span><label class="field"><span>TEMA DO DISPLAY</span><select id="quick-theme"></select></label><button class="subtle" data-go="themes">Explorar temas</button></section>
+            <section class="panel quick"><span class="tile-icon purple">◐</span><label class="field"><span>BRILHO <output id="brightness-value">80%</output></span><input id="brightness" type="range" min="0" max="100" value="80"></label><small>Pré-visualização da configuração.</small></section>
+            <section class="panel quick"><span class="tile-icon blue">⟳</span><label class="field"><span>ROTAÇÃO DA TELA</span><select id="rotation"><option value="0">0° · Normal</option><option value="180">180° · Invertida</option></select></label><small>A orientação é aplicada pelo tema.</small></section>
+          </div>
+          <div class="section-heading"><div><label>TELA SECUNDÁRIA</label><h2>Pré-visualização</h2></div><span class="tag">TEMA DO DISPLAY</span></div>
+          <section class="preview panel">
+            <div class="screen">
+              <div class="screen-content">
+                <section class="screen-left">
+                  <div class="screen-identity"><span class="screen-computer">▣</span><span><b id="computer-name">Este computador</b><small id="os-version">Windows</small></span></div>
+                  <time id="clock" class="screen-clock">22:04</time>
+                  <div id="screen-date" class="screen-date">DOM&nbsp; 11&nbsp; OUT&nbsp; 2026</div>
+                  <div class="weather-card">
+                    <span class="weather-icon">☁</span>
+                    <span class="weather-now"><b id="weather-temperature">—°</b><small id="weather-description">CLIMA</small></span>
+                    <span class="weather-details"><span>Defina</span><span>uma cidade</span><span>nas opções</span></span>
+                  </div>
+                </section>
+                <section class="screen-metrics" aria-label="Prévia de CPU, memória e GPU">
+                  <article class="metric-card cpu-card">
+                    <span class="metric-accent"></span><span class="metric-icon">▦</span>
+                    <div class="metric-info"><div class="metric-title"><b>CPU</b><b id="cpu-frequency">— MHz</b></div><div class="metric-reading"><strong id="cpu-usage">—<small>%</small></strong><svg class="sparkline" viewBox="0 0 120 30" aria-hidden="true"><path id="cpu-history" d=""/></svg></div><small id="cpu-custom-preview" class="meter-caption">Aguardando métrica</small></div>
+                  </article>
+                  <article class="metric-card ram-card">
+                    <span class="metric-accent"></span><span class="metric-icon">▤</span>
+                    <div class="metric-info"><div class="metric-title"><b>RAM</b><b id="ram-total">— GB</b></div><div class="metric-reading"><strong id="ram-usage">—<small>%</small></strong><div class="memory-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div><small id="ram-custom-preview" class="meter-caption">Aguardando métrica</small></div>
+                  </article>
+                  <article class="metric-card gpu-card">
+                    <span class="metric-accent"></span><span class="metric-icon">▣</span>
+                    <div class="metric-info"><div class="metric-title"><b>GPU</b><b id="gpu-temperature" class="gpu-temperature">TEMP —°C</b></div><div class="metric-reading"><strong id="gpu-usage">—<small>%</small></strong><div class="gpu-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div><small id="gpu-custom-preview" class="meter-caption">Aguardando métrica</small></div>
+                  </article>
+                </section>
+                <section class="screen-footer">
+                  <div class="footer-cell"><span class="footer-icon">◷</span><span><b>UPTIME</b><small id="uptime">—</small></span></div>
+                  <div class="footer-cell network-cell"><span><b id="upload-speed" class="upload">⬆ — MB/s</b><b id="download-speed" class="download">⬇ — MB/s</b><small>NETWORK</small></span></div>
+                  <div class="footer-cell ethernet-cell"><span class="ethernet-icon">◉</span><span><b>REDE</b><small id="network-state">—</small></span></div>
+                  <div class="footer-cell temperature-cell"><span>♨</span><span><b>GPU TEMP</b><strong id="footer-gpu-temperature">—°C</strong></span></div>
+                  <div class="footer-cell vram-cell"><b>VRAM</b><strong id="vram">—</strong></div>
+                </section>
+              </div>
+            </div>
+            <div class="caption"><b>✦</b><div><strong>Tema de referência</strong><p>CPU, RAM, GPU, rede e uptime mostram leituras deste computador. Temperaturas ou dados sem fonte disponível ficam como N/D.</p></div></div>
+          </section>
+          <footer>Interface para o display Turing 3,5″ <span>·</span> As métricas são reais; o envio de telas ao display ainda não está ativo.</footer>
+        </section>
+        <section class="page" id="page-themes">
+          <div class="heading"><div><label>APARÊNCIA</label><h1>Temas</h1><p>Escolha uma arte disponível para personalizar a tela.</p></div></div>
+          <div id="theme-grid" class="theme-grid"></div>
+        </section>
+        <section class="page" id="page-settings">
+          <div class="heading"><div><label>PREFERÊNCIAS</label><h1>Configurações</h1><p>Ajuste as opções gerais do Turing Smart Screen.</p></div></div>
+          <div class="settings-grid">
+            <section class="panel settings">
+              <div><label>DISPLAY</label><h2>Sensores e informações</h2></div>
+              <label class="field"><span>SENSOR DE TEMPERATURA DA CPU</span><select id="sensor"><option>CPU (Tctl/Tdie)</option><option>CPU Package</option><option>CPU Core</option></select></label>
+              <label class="field"><span>ADAPTADOR DE REDE</span><select id="network"><option>Detecção automática</option></select></label>
+              <fieldset class="custom-info">
+                <legend>INFORMAÇÕES PERSONALIZADAS</legend>
+                <label class="field"><span>CPU</span><input id="cpu-custom" maxlength="24" placeholder="Ex.: Ryzen 7 5800X"></label>
+                <label class="field"><span>GPU</span><input id="gpu-custom" maxlength="24" placeholder="Ex.: GeForce RTX 4070"></label>
+                <label class="field"><span>RAM</span><input id="ram-custom" maxlength="24" placeholder="Ex.: 32 GB DDR5"></label>
+                <small>Esses textos aparecem como identificação nos cartões da prévia.</small>
+              </fieldset>
+              <label class="field"><span>CIDADE PARA PREVISÃO DO TEMPO</span><span class="inline"><input id="city" placeholder="Digite uma cidade"><button class="secondary" id="search-city">Buscar</button></span></label>
+              <small id="city-result">A previsão não está ligada a um serviço meteorológico.</small>
+            </section>
+            <section class="panel settings">
+              <div><label>APLICATIVO</label><h2>Inicialização e aparência</h2></div>
+              <label class="toggle"><span><b>Iniciar com o Windows</b><small>Disponível após integrar o instalador.</small></span><input type="checkbox" disabled></label>
+              <label class="toggle"><span><b>Desativar atualizações</b><small>Esta versão não executa atualizações.</small></span><input type="checkbox" checked disabled></label>
+              <label class="field"><span>COR DA BARRA DE STATUS</span><span class="color"><input id="bar-color" type="color" value="#35d7e9"> Cor de destaque</span></label>
+              <label class="toggle"><span><b>Espelhar orientação</b><small>Prévia da inversão do display.</small></span><input id="mirror" type="checkbox"></label>
+              <button class="primary save" id="save">Salvar preferências</button>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
