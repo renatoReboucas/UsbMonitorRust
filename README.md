@@ -1,44 +1,51 @@
-# Turing Smart Screen — Rust + HTML
+# UsbMonitor Rust
 
-Versão inicial independente para o display Turing de 3,5 polegadas. O backend
-é Rust; as telas são HTML/CSS/JavaScript. O projeto contém cópias das artes
-disponíveis em `assets`.
+Aplicativo desktop para Windows, implementado com Rust + Tauri 2. A interface é
+HTML/CSS/JavaScript em `frontend`; telemetria, serial, persistência, inicialização
+automática, bandeja e exportação são implementadas em `src-tauri`.
 
-## Executar no Windows
+## Executar
 
-Com Rust stable instalado, abra o PowerShell:
+Requisitos: Rust stable, Microsoft C++ Build Tools e WebView2 Runtime
+(normalmente presente no Windows 10/11).
 
 ```powershell
 cd C:\Users\rebou\Projetos\UsbMonitorRust
 cargo run
 ```
 
-Abra <http://127.0.0.1:47825>. O servidor escuta apenas em loopback. O
-aplicativo identifica o adaptador USB por `VID_1A86` e `PID_5722`; conectado
-nesta máquina, ele apareceu como `COM3`.
+O comando compila e abre a janela desktop; não inicia servidor HTTP nem porta
+de rede. Para gerar instaladores MSI/NSIS, instale o Tauri CLI v2 e execute
+`cargo tauri build`.
 
-## Implementado
+## Recursos
 
-- Tela Monitor, Temas e Configurações, responsivas e em português.
-- Prévia local usando imagens fornecidas pelo usuário.
-- Identificações personalizadas e independentes para CPU, GPU e RAM, refletidas
-  na prévia e salvas no navegador.
-- Detecção periódica do adaptador USB-serial e exibição da porta COM.
-- Abrir/fechar a porta serial com seleção explícita de velocidade.
-- Erros de enumeração/abertura da porta apresentados à interface.
-- Métricas reais de CPU, RAM, frequência da CPU, tráfego da rede e uptime.
-- Utilização, temperatura e VRAM da GPU NVIDIA via NVML.
-- Cartões destacados de CPU, RAM e GPU no topo da página Monitor, visíveis
-  antes dos controles seriais e da prévia do display.
-- Indicador de status/horário da última atualização das métricas ao vivo.
+- CPU, memória, rede e uptime coletados localmente a cada segundo.
+- Utilização, temperatura e VRAM NVIDIA via NVML, quando o driver NVIDIA
+  disponibiliza `nvml.dll`; métricas indisponíveis são apresentadas como N/D.
+- Gráfico com até dois minutos visíveis; o buffer em memória e a exportação
+  guardam até uma hora de amostras.
+- Preferências validadas e persistidas em JSON no diretório de configuração do
+  aplicativo; inicialização do Windows configurável.
+- Bandeja do sistema: clique ou “Abrir UsbMonitor” mostra a janela; fechar a
+  janela a oculta; “Encerrar” finaliza o aplicativo.
+- Exportação das amostras para CSV em `Downloads\UsbMonitorRust`.
+- Detecção opcional do adaptador USB serial `VID_1A86:PID_5722`, com abertura e
+  fechamento explícitos.
 
-As métricas aparecem automaticamente; não é necessário abrir a serial. A porta
-serial só precisa ser aberta para uma integração futura, e abrir a porta
-**não transmite nenhum byte**. Temperatura da CPU e clima ainda não são obtidos;
-clima exige configurar uma cidade e um provedor. Métricas de GPU ficam
-indisponíveis em computadores sem driver NVIDIA/NVML. Preferências visuais ficam
-no navegador; inicialização do Windows e envio das telas ao display não estão
-implementados enquanto o protocolo serial continuar desconhecido.
+## Limites conhecidos da engenharia reversa
 
-Leia `RETOMADA.md` para o registro da engenharia reversa, evidências, limitações
-e próximos passos; mantenha esse documento atualizado ao alterar o projeto.
+O código anterior deste projeto abria a serial, mas não enviava nem recebia
+bytes. A interface atual mantém esse limite de segurança: não altera o display
+físico. O protocolo, baud rate correto e formato das telas ainda precisam de
+captura passiva e confirmação antes de implementar transmissão. A identificação
+USB, isoladamente, não comprova o protocolo.
+
+Esta versão obtém métricas de GPU pela NVML NVIDIA. Métricas equivalentes de
+GPU Intel/AMD e temperatura da CPU não foram implementadas. Clima também não
+tem provedor configurado; cidade/previsão não é consultada nem enviada.
+Brilho, tema e rotação são preferências/previsualização da interface, não
+comandos enviados ao display.
+
+Consulte `RETOMADA.md` para os achados do código substituído, o estado da
+engenharia reversa do programa original e as evidências/limitações conhecidas.
