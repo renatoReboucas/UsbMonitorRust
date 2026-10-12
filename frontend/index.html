@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0b1019">
     <title>Turing Smart Screen</title>
-    <link rel="stylesheet" href="/styles.css?v=home-metrics-20261011-3">
-    <script src="/app.js?v=home-metrics-20261011-3" defer></script>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app.js" defer></script>
   </head>
   <body>
     <div class="shell">
@@ -20,7 +20,7 @@
         </nav>
         <div class="sidebar-bottom">
           <div class="connection"><i id="side-dot"></i><span><b id="side-status">Procurando display</b><small id="side-port">USB · VID_1A86</small></span></div>
-          <small class="version">INTERFACE RUST · 0.1.0</small>
+          <small class="version">TAURI · 0.2.0</small>
         </div>
       </aside>
       <main>
@@ -49,6 +49,11 @@
             </article>
           </section>
           <div class="live-metrics-updated"><span class="status-dot online"></span><span id="metrics-status">Consultando métricas do computador…</span></div>
+          <section class="history panel">
+            <div class="history-heading"><div><label>HISTÓRICO</label><h2>Últimos minutos</h2></div><span class="tag">AMOSTRAS DE 1 S</span></div>
+            <canvas id="history-chart" role="img" aria-label="Gráfico histórico de uso de CPU, RAM e GPU"></canvas>
+            <div class="chart-legend"><span class="legend-cpu">CPU</span><span class="legend-ram">RAM</span><span class="legend-gpu">GPU</span><small id="history-range">Aguardando amostras</small></div>
+          </section>
           <section class="device panel">
             <div class="device-info"><span class="device-icon">▣</span><div><label>DISPLAY USB 3,5″</label><h2 id="device-name">Procurando dispositivo…</h2><p id="device-detail">Identificação USB: VID_1A86 · PID_5722</p></div></div>
             <div class="device-actions">
@@ -128,11 +133,12 @@
             </section>
             <section class="panel settings">
               <div><label>APLICATIVO</label><h2>Inicialização e aparência</h2></div>
-              <label class="toggle"><span><b>Iniciar com o Windows</b><small>Disponível após integrar o instalador.</small></span><input type="checkbox" disabled></label>
+              <label class="toggle"><span><b>Iniciar com o Windows</b><small>Executa este aplicativo ao entrar na sua conta.</small></span><input id="start-with-windows" type="checkbox"></label>
               <label class="toggle"><span><b>Desativar atualizações</b><small>Esta versão não executa atualizações.</small></span><input type="checkbox" checked disabled></label>
               <label class="field"><span>COR DA BARRA DE STATUS</span><span class="color"><input id="bar-color" type="color" value="#35d7e9"> Cor de destaque</span></label>
               <label class="toggle"><span><b>Espelhar orientação</b><small>Prévia da inversão do display.</small></span><input id="mirror" type="checkbox"></label>
               <button class="primary save" id="save">Salvar preferências</button>
+              <button class="secondary" id="export-logs">Exportar histórico CSV</button>
             </section>
           </div>
         </section>

@@ -1,3 +1,4 @@
+const invoke = window.__TAURI__?.core?.invoke;
 const themes = [
   ["3.5inchTheme1", "deep space.png", "INCLUSO"],
   ["3.5inchTheme2", "deep blue.png", "INCLUSO"],
@@ -9,9 +10,25 @@ const themes = [
   ["LandscapeSimpleWhite", "wihte.png", "MINIMAL"],
 ];
 const $ = (selector) => document.querySelector(selector);
-let selectedTheme = localStorage.getItem("turing-theme") || themes[0][0];
-const cpuHistory = [];
+const historySamples = [];
 const metricNames = { cpu: "", gpu: "" };
+const defaults = {
+  theme: themes[0][0],
+  brightness: 80,
+  rotation: 0,
+  mirror: false,
+  accentColor: "#35d7e9",
+  cpuCustom: "",
+  gpuCustom: "",
+  ramCustom: "",
+  sensor: "CPU (Tctl/Tdie)",
+  network: "Detecção automática",
+  city: "",
+  startWithWindows: false,
+};
+let settings = { ...defaults };
+let selectedTheme = settings.theme;
+let metricsRequestRunning = false;
 
 function formatGb(bytes) {
   return (bytes / (1024 ** 3)).toFixed(1);
@@ -22,11 +39,6 @@ function formatUptime(seconds) {
   const hours = Math.floor((seconds % 86400) / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   return `${days}d ${hours}h ${minutes}m`;
-}
-
-function setProgress(element, value) {
-  const valid = Number.isFinite(value);
-  element.style.width = valid ? `${Math.max(0, Math.min(100, value))}%` : "0%";
 }
 
 function notice(message, type = "") {
@@ -46,13 +58,12 @@ function setPage(name) {
 
 function chooseTheme(name) {
   selectedTheme = themes.some((theme) => theme[0] === name) ? name : themes[0][0];
-  localStorage.setItem("turing-theme", selectedTheme);
+  settings.theme = selectedTheme;
   $("#quick-theme").value = selectedTheme;
   document.querySelectorAll(".theme-card").forEach((card) => card.classList.toggle("selected", card.dataset.theme === selectedTheme));
   const theme = themes.find((item) => item[0] === selectedTheme);
   const screen = $(".screen");
-  $("#screen-theme").textContent = theme[0].toUpperCase();
-  screen.style.backgroundImage = `linear-gradient(180deg,#07101aaa,#07101acc),url("/assets/${encodeURIComponent(theme[1])}")`;
+  screen.style.backgroundImage = `linear-gradient(180deg,#07101aaa,#07101acc),url("./assets/${encodeURIComponent(theme[1])}")`;
   screen.style.backgroundSize = "cover";
   screen.style.backgroundPosition = "center";
 }
@@ -67,7 +78,7 @@ function renderThemes() {
     card.dataset.theme = name;
     const image = document.createElement("span");
     image.className = "theme-image";
-    image.style.backgroundImage = `linear-gradient(180deg,transparent,#08101dcc),url("/assets/${encodeURIComponent(file)}")`;
+    image.style.backgroundImage = `linear-gradient(180deg,transparent,#08101dcc),url("./assets/${encodeURIComponent(file)}")`;
     const badge = document.createElement("span");
     badge.className = "badge";
     badge.textContent = category;
@@ -80,7 +91,6 @@ function renderThemes() {
     card.addEventListener("click", () => chooseTheme(name));
     grid.append(card);
   }
-  chooseTheme(selectedTheme);
 }
 
 function updateStatus(data) {
@@ -105,68 +115,65 @@ function updateBars(selector, percentage) {
   bars.forEach((bar, index) => bar.classList.toggle("active", index < activeBars));
 }
 
+function setPercentage(element, value) {
+  element.replaceChildren();
+  element.append(document.createTextNode(value === null ? "N/D" : Math.round(value).toString()));
+  if (value !== null) {
+    const suffix = document.createElement("small");
+    suffix.textContent = "%";
+    element.append(suffix);
+  }
+}
+
 function updateCustomInfo() {
-  const customCpu = $("#cpu-custom").value.trim();
-  const customGpu = $("#gpu-custom").value.trim();
-  const customRam = $("#ram-custom").value.trim();
-  $("#cpu-custom-preview").textContent = customCpu || metricNames.cpu || "USO DO PROCESSADOR";
+  $("#cpu-custom-preview").textContent = settings.cpuCustom || metricNames.cpu || "USO DO PROCESSADOR";
   $("#cpu-custom-preview").title = metricNames.cpu || "Processador";
-  $("#gpu-custom-preview").textContent = customGpu || metricNames.gpu || "USO DA PLACA DE VÍDEO";
+  $("#gpu-custom-preview").textContent = settings.gpuCustom || metricNames.gpu || "USO DA PLACA DE VÍDEO";
   $("#gpu-custom-preview").title = metricNames.gpu || "Placa de vídeo";
-  $("#ram-custom-preview").textContent = customRam || "MEMÓRIA EM USO";
+  $("#ram-custom-preview").textContent = settings.ramCustom || "MEMÓRIA EM USO";
+}
+
+function setProgress(element, value) {
+  element.style.width = Number.isFinite(value) ? `${Math.max(0, Math.min(100, value))}%` : "0%";
 }
 
 function updateMetrics(metrics) {
-  if (metrics.cpu_usage_percent !== null) {
-    const usage = Math.max(0, Math.min(100, metrics.cpu_usage_percent));
-    $("#cpu-usage").innerHTML = `${usage.toFixed(0)}<small>%</small>`;
-    $("#home-cpu-usage").textContent = `${usage.toFixed(0)}%`;
-    setProgress($("#home-cpu-bar"), usage);
-    cpuHistory.push(usage);
-    if (cpuHistory.length > 30) cpuHistory.shift();
-    const line = cpuHistory.map((sample, index) => {
-      const x = cpuHistory.length < 2 ? 0 : index * 120 / (cpuHistory.length - 1);
-      return `${index === 0 ? "M" : "L"}${x.toFixed(1)} ${(27 - sample * 0.24).toFixed(1)}`;
-    });
-    $("#cpu-history").setAttribute("d", line.join(" "));
-  } else {
-    $("#cpu-usage").innerHTML = "N/D<small></small>";
-    $("#home-cpu-usage").textContent = "N/D";
-  }
+  if (!metrics.timestamp_unix_ms) return;
+  const cpuUsage = metrics.cpu_usage_percent === null ? null : Math.max(0, Math.min(100, metrics.cpu_usage_percent));
+  setPercentage($("#cpu-usage"), cpuUsage);
+  setPercentage($("#home-cpu-usage"), cpuUsage);
+  if (cpuUsage !== null) setProgress($("#home-cpu-bar"), cpuUsage);
 
-  if (metrics.cpu_frequency_mhz !== null) {
-    const frequency = `${(metrics.cpu_frequency_mhz / 1000).toFixed(1)} GHz`;
-    $("#cpu-frequency").textContent = frequency;
-    $("#home-cpu-frequency").textContent = frequency;
-  }
+  const frequency = metrics.cpu_frequency_mhz === null ? "N/D" : `${(metrics.cpu_frequency_mhz / 1000).toFixed(1)} GHz`;
+  $("#cpu-frequency").textContent = frequency;
+  $("#home-cpu-frequency").textContent = frequency;
   metricNames.cpu = metrics.cpu_name || "";
   metricNames.gpu = metrics.gpu_name || "";
   $("#home-cpu-name").textContent = metricNames.cpu || "Nome indisponível";
 
-  if (metrics.ram_total_bytes > 0) {
-    const usage = metrics.ram_used_bytes / metrics.ram_total_bytes * 100;
-    $("#ram-usage").innerHTML = `${usage.toFixed(0)}<small>%</small>`;
-    $("#ram-total").textContent = `${formatGb(metrics.ram_used_bytes)} / ${formatGb(metrics.ram_total_bytes)} GB`;
-    $("#home-ram-usage").textContent = `${usage.toFixed(0)}%`;
-    $("#home-ram-total").textContent = `${formatGb(metrics.ram_used_bytes)} / ${formatGb(metrics.ram_total_bytes)} GB`;
-    setProgress($("#home-ram-bar"), usage);
-    updateBars(".memory-bars", usage);
-  } else {
-    $("#ram-usage").innerHTML = "N/D<small></small>";
+  const ramUsage = metrics.ram_total_bytes > 0
+    ? metrics.ram_used_bytes / metrics.ram_total_bytes * 100
+    : null;
+  setPercentage($("#ram-usage"), ramUsage);
+  if (ramUsage === null) {
     $("#ram-total").textContent = "N/D";
-    $("#home-ram-usage").textContent = "N/D";
     $("#home-ram-total").textContent = "Memória indisponível";
-  }
-
-  if (metrics.gpu_usage_percent !== null) {
-    $("#gpu-usage").innerHTML = `${metrics.gpu_usage_percent}<small>%</small>`;
-    $("#home-gpu-usage").textContent = `${metrics.gpu_usage_percent}%`;
-    setProgress($("#home-gpu-bar"), metrics.gpu_usage_percent);
-    updateBars(".gpu-bars", metrics.gpu_usage_percent);
   } else {
-    $("#gpu-usage").innerHTML = "N/D<small></small>";
-    $("#home-gpu-usage").textContent = "N/D";
+    $("#ram-total").textContent = `${formatGb(metrics.ram_used_bytes)} / ${formatGb(metrics.ram_total_bytes)} GB`;
+    $("#home-ram-total").textContent = $("#ram-total").textContent;
+    setProgress($("#home-ram-bar"), ramUsage);
+    updateBars(".memory-bars", ramUsage);
+  }
+  setPercentage($("#home-ram-usage"), ramUsage);
+
+  const gpuUsage = metrics.gpu_usage_percent;
+  setPercentage($("#gpu-usage"), gpuUsage);
+  setPercentage($("#home-gpu-usage"), gpuUsage);
+  if (gpuUsage === null) {
     setProgress($("#home-gpu-bar"), NaN);
+  } else {
+    setProgress($("#home-gpu-bar"), gpuUsage);
+    updateBars(".gpu-bars", gpuUsage);
   }
 
   const gpuTemperature = metrics.gpu_temperature_c === null ? "N/D" : `${metrics.gpu_temperature_c}°C`;
@@ -186,55 +193,181 @@ function updateMetrics(metrics) {
   $("#network-state").textContent = metrics.network_interfaces > 0 ? "ATIVA" : "OFFLINE";
   if (metrics.computer_name) $("#computer-name").textContent = metrics.computer_name;
   if (metrics.os_version) $("#os-version").textContent = metrics.os_version;
-  $("#metrics-status").textContent = `Dados do PC atualizados às ${new Date().toLocaleTimeString("pt-BR")}`;
+
+  historySamples.push({
+    cpu: cpuUsage,
+    ram: ramUsage,
+    gpu: gpuUsage,
+    timestamp: metrics.timestamp_unix_ms,
+  });
+  if (historySamples.length > 120) historySamples.shift();
+  $("#history-range").textContent = `${historySamples.length} amostras · últimos ${Math.max(1, Math.round(historySamples.length / 60))} min`;
+  drawHistory();
+  $("#metrics-status").textContent = `Dados do PC atualizados às ${new Date(metrics.timestamp_unix_ms).toLocaleTimeString("pt-BR")}`;
   $("#metrics-status").classList.add("metrics-live");
   updateCustomInfo();
   const alert = $("#notice");
   if (alert.classList.contains("metrics-error")) alert.hidden = true;
 }
 
+function drawHistory() {
+  const canvas = $("#history-chart");
+  const context = canvas.getContext("2d");
+  const bounds = canvas.getBoundingClientRect();
+  if (!context || bounds.width === 0) return;
+  const scale = window.devicePixelRatio || 1;
+  canvas.width = Math.round(bounds.width * scale);
+  canvas.height = Math.round(bounds.height * scale);
+  context.setTransform(scale, 0, 0, scale, 0, 0);
+  const width = bounds.width;
+  const height = bounds.height;
+  context.clearRect(0, 0, width, height);
+  context.font = "10px Segoe UI, sans-serif";
+  context.fillStyle = "#8190a5";
+  context.strokeStyle = "#253247";
+  context.lineWidth = 1;
+  for (let level = 0; level <= 100; level += 25) {
+    const y = height - 18 - (height - 28) * level / 100;
+    context.beginPath();
+    context.moveTo(32, y);
+    context.lineTo(width, y);
+    context.stroke();
+    context.fillText(`${level}%`, 0, y + 3);
+  }
+  for (const [key, color] of [["cpu", "#44ebba"], ["ram", "#d789f5"], ["gpu", "#38d9fa"]]) {
+    context.strokeStyle = color;
+    context.lineWidth = 2;
+    context.beginPath();
+    let started = false;
+    historySamples.forEach((sample, index) => {
+      if (sample[key] === null) {
+        started = false;
+        return;
+      }
+      const x = historySamples.length < 2 ? 32 : 32 + (width - 32) * index / (historySamples.length - 1);
+      const y = height - 18 - (height - 28) * Math.max(0, Math.min(100, sample[key])) / 100;
+      if (!started) {
+        context.moveTo(x, y);
+        started = true;
+      } else {
+        context.lineTo(x, y);
+      }
+    });
+    context.stroke();
+  }
+}
+
 async function refreshStatus() {
   try {
-    const response = await fetch("/api/status", { cache: "no-store" });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
-    updateStatus(data);
+    updateStatus(await invoke("get_device_status"));
   } catch (error) {
-    $("#device-name").textContent = "Serviço Rust indisponível";
-    $("#device-detail").textContent = "Inicie o aplicativo Rust e atualize a página.";
-    notice(`Não foi possível consultar o dispositivo: ${error.message}`, "error");
+    $("#device-name").textContent = "Serviço local indisponível";
+    $("#device-detail").textContent = "Não foi possível consultar o dispositivo.";
+    notice(`Falha ao consultar o dispositivo: ${error}`, "error");
   }
 }
 
 async function refreshMetrics() {
+  if (metricsRequestRunning) return;
+  metricsRequestRunning = true;
   try {
-    const response = await fetch("/api/metrics", { cache: "no-store" });
-    const metrics = await response.json();
-    if (!response.ok) throw new Error(metrics.error || `HTTP ${response.status}`);
-    updateMetrics(metrics);
+    updateMetrics(await invoke("get_metrics"));
   } catch (error) {
     $("#metrics-status").textContent = "MÉTRICAS INDISPONÍVEIS";
     $("#metrics-status").classList.remove("metrics-live");
-    notice(`Falha ao ler métricas do computador: ${error.message}`, "error");
+    notice(`Falha ao ler métricas do computador: ${error}`, "error");
     $("#notice").classList.add("metrics-error");
+  } finally {
+    metricsRequestRunning = false;
   }
 }
 
 async function togglePort() {
   const closing = $("#connect").textContent === "Fechar serial";
   try {
-    const response = await fetch(closing ? "/api/disconnect" : "/api/connect", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: closing ? "{}" : JSON.stringify({ port: $("#port-select").value, baud_rate: Number($("#baud").value) }),
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+    const data = closing
+      ? await invoke("disconnect_serial")
+      : await invoke("connect_serial", {
+        port: $("#port-select").value,
+        baudRate: Number($("#baud").value),
+      });
     updateStatus(data);
-    notice(closing ? "Porta serial fechada." : "Porta serial aberta. As métricas aparecem independentemente; nenhum comando foi enviado ao display.");
+    notice(closing
+      ? "Porta serial fechada."
+      : "Porta serial aberta. Nenhum comando foi enviado ao display.");
   } catch (error) {
-    notice(error.message, "error");
+    notice(String(error), "error");
   }
+}
+
+function readSettings() {
+  return {
+    theme: selectedTheme,
+    brightness: Number($("#brightness").value),
+    rotation: Number($("#rotation").value),
+    mirror: $("#mirror").checked,
+    accentColor: $("#bar-color").value,
+    cpuCustom: $("#cpu-custom").value.trim(),
+    gpuCustom: $("#gpu-custom").value.trim(),
+    ramCustom: $("#ram-custom").value.trim(),
+    sensor: $("#sensor").value,
+    network: $("#network").value,
+    city: $("#city").value.trim(),
+    startWithWindows: $("#start-with-windows").checked,
+  };
+}
+
+function applySettings(config) {
+  settings = { ...defaults, ...config };
+  selectedTheme = settings.theme;
+  $("#quick-theme").value = selectedTheme;
+  $("#brightness").value = String(settings.brightness);
+  $("#brightness-value").value = `${settings.brightness}%`;
+  $("#rotation").value = String(settings.rotation);
+  $("#mirror").checked = settings.mirror;
+  $("#bar-color").value = settings.accentColor;
+  $("#cpu-custom").value = settings.cpuCustom;
+  $("#gpu-custom").value = settings.gpuCustom;
+  $("#ram-custom").value = settings.ramCustom;
+  $("#sensor").value = settings.sensor;
+  $("#network").value = settings.network;
+  $("#city").value = settings.city;
+  $("#start-with-windows").checked = settings.startWithWindows;
+  document.documentElement.style.setProperty("--accent", settings.accentColor);
+  $(".screen").style.transform = settings.rotation === 180 || settings.mirror ? "rotate(180deg)" : "";
+  chooseTheme(selectedTheme);
+  updateCustomInfo();
+}
+
+async function restoreHistory() {
+  const samples = await invoke("get_history");
+  for (const metrics of samples) {
+    if (!metrics.timestamp_unix_ms) continue;
+    historySamples.push({
+      cpu: metrics.cpu_usage_percent,
+      ram: metrics.ram_total_bytes > 0
+        ? metrics.ram_used_bytes / metrics.ram_total_bytes * 100
+        : null,
+      gpu: metrics.gpu_usage_percent,
+      timestamp: metrics.timestamp_unix_ms,
+    });
+  }
+  if (historySamples.length > 120) historySamples.splice(0, historySamples.length - 120);
+  if (historySamples.length) {
+    $("#history-range").textContent = `${historySamples.length} amostras · últimos ${Math.max(1, Math.round(historySamples.length / 60))} min`;
+    drawHistory();
+  }
+}
+
+function tick() {
+  const now = new Date();
+  $("#clock").textContent = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" }).format(now);
+  $("#screen-date").textContent = new Intl.DateTimeFormat("pt-BR", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(now).replaceAll(".", "").toUpperCase();
 }
 
 document.querySelectorAll(".nav-item").forEach((el) => el.addEventListener("click", () => setPage(el.dataset.page)));
@@ -243,50 +376,66 @@ $("#quick-theme").addEventListener("change", (event) => chooseTheme(event.target
 $("#refresh").addEventListener("click", refreshStatus);
 $("#connect").addEventListener("click", togglePort);
 $("#brightness").addEventListener("input", (event) => { $("#brightness-value").value = `${event.target.value}%`; });
-$("#rotation").addEventListener("change", (event) => { $(".screen").style.transform = event.target.value === "180" ? "rotate(180deg)" : ""; });
-$("#mirror").addEventListener("change", (event) => { $(".screen").style.transform = event.target.checked ? "rotate(180deg)" : ""; });
+$("#rotation").addEventListener("change", (event) => {
+  $(".screen").style.transform = Number(event.target.value) === 180 || $("#mirror").checked ? "rotate(180deg)" : "";
+});
+$("#mirror").addEventListener("change", (event) => {
+  $(".screen").style.transform = event.target.checked || Number($("#rotation").value) === 180 ? "rotate(180deg)" : "";
+});
 $("#bar-color").addEventListener("input", (event) => document.documentElement.style.setProperty("--accent", event.target.value));
-["cpu-custom", "gpu-custom", "ram-custom"].forEach((id) => $(`#${id}`).addEventListener("input", updateCustomInfo));
+["cpu-custom", "gpu-custom", "ram-custom"].forEach((id) => $(`#${id}`).addEventListener("input", () => {
+  settings.cpuCustom = $("#cpu-custom").value.trim();
+  settings.gpuCustom = $("#gpu-custom").value.trim();
+  settings.ramCustom = $("#ram-custom").value.trim();
+  updateCustomInfo();
+}));
 $("#search-city").addEventListener("click", () => {
   const city = $("#city").value.trim();
-  $("#city-result").textContent = city ? `“${city}” anotada; busca de previsão indisponível sem um provedor meteorológico.` : "Digite o nome de uma cidade.";
+  $("#city-result").textContent = city
+    ? `“${city}” anotada; a previsão exige um provedor meteorológico.`
+    : "Digite o nome de uma cidade.";
 });
-$("#save").addEventListener("click", () => {
-  for (const id of ["cpu-custom", "gpu-custom", "ram-custom", "sensor", "network", "city", "brightness", "rotation", "bar-color"]) {
-    localStorage.setItem(`turing-${id}`, $(`#${id}`).value);
+$("#save").addEventListener("click", async () => {
+  try {
+    const saved = await invoke("save_config", { config: readSettings() });
+    applySettings(saved);
+    notice("Preferências salvas no computador.");
+  } catch (error) {
+    notice(`Não foi possível salvar as preferências: ${error}`, "error");
   }
-  localStorage.setItem("turing-mirror", String($("#mirror").checked));
-  updateCustomInfo();
-  notice("Preferências locais salvas neste navegador.");
 });
-function restoreSettings() {
-  for (const id of ["cpu-custom", "gpu-custom", "ram-custom", "sensor", "network", "city", "brightness", "rotation", "bar-color"]) {
-    const value = localStorage.getItem(`turing-${id}`);
-    if (value !== null) $(`#${id}`).value = value;
+$("#export-logs").addEventListener("click", async () => {
+  try {
+    const path = await invoke("export_logs");
+    notice(`Histórico CSV exportado para ${path}.`);
+  } catch (error) {
+    notice(`Não foi possível exportar o histórico: ${error}`, "error");
   }
-  const mirror = localStorage.getItem("turing-mirror");
-  if (mirror !== null) $("#mirror").checked = mirror === "true";
-  $("#brightness-value").value = `${$("#brightness").value}%`;
-  document.documentElement.style.setProperty("--accent", $("#bar-color").value);
-  const rotation = $("#rotation").value === "180";
-  $(".screen").style.transform = rotation || $("#mirror").checked ? "rotate(180deg)" : "";
-  updateCustomInfo();
+});
+window.addEventListener("resize", drawHistory);
+
+async function start() {
+  if (!invoke) {
+    notice("A interface precisa ser executada pelo aplicativo UsbMonitorRust.", "error");
+    return;
+  }
+  renderThemes();
+  tick();
+  try {
+    applySettings(await invoke("load_config"));
+  } catch (error) {
+    notice(`Não foi possível carregar as preferências: ${error}`, "error");
+  }
+  try {
+    await restoreHistory();
+  } catch (error) {
+    notice(`Não foi possível carregar o histórico: ${error}`, "error");
+  }
+  refreshStatus();
+  refreshMetrics();
+  setInterval(refreshStatus, 5000);
+  setInterval(refreshMetrics, 1000);
+  setInterval(tick, 1000);
 }
-function updateCustomInfo() {
-  updateCustomInfo();
-}
-function tick() {
-  const now = new Date();
-  $("#clock").textContent = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" }).format(now);
-  const date = new Intl.DateTimeFormat("pt-BR", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })
-    .format(now).replaceAll(".", "").toUpperCase();
-  $("#screen-date").textContent = date;
-}
-renderThemes();
-restoreSettings();
-tick();
-setInterval(tick, 1000);
-refreshStatus();
-setInterval(refreshStatus, 5000);
-refreshMetrics();
-setInterval(refreshMetrics, 1000);
+
+start();
