@@ -35,12 +35,13 @@
             <div class="device-info"><span class="device-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 22h8m-4-4v4"/></svg></span><div><label>DISPLAY USB 3,5″</label><h2 id="device-name">Procurando dispositivo…</h2><p id="device-detail">Identificação USB: VID_1A86 · PID_5722</p></div></div>
             <div class="device-actions">
               <label class="field"><span>PORTA</span><select id="port-select" disabled><option>Procurando…</option></select></label>
+              <label class="field"><span>ATUALIZAR A CADA</span><select id="home-refresh-interval"><option value="3">3 seg</option><option value="5" selected>5 seg</option><option value="10">10 seg</option><option value="15">15 seg</option><option value="30">30 seg</option><option value="60">1 min</option></select></label>
               <div class="serial-mode"><span>PROTOCOLO</span><strong>115200 baud · 8N1</strong><small>DTR/RTS ativos · sem handshake</small></div>
               <button class="primary" id="connect" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7z"/></svg><span class="button-label">Transmitir para display</span></button>
               <button class="secondary" id="send-now" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.8-2L20 12M4 12l2.6 5a7 7 0 0 0 11.8-2"/></svg><span class="button-label">Enviar agora</span></button>
             </div>
             <div id="transmission-state" class="transmission-state" role="status" aria-live="polite" hidden><span class="transmission-spinner" aria-hidden="true"></span><span id="transmission-message"></span></div>
-            <small class="serial-hint">A primeira tela pode levar cerca de 30 segundos; depois ela é atualizada a cada minuto. Feche o programa original do display se ele estiver usando a mesma porta COM.</small>
+            <small class="serial-hint">A transmissão ao display envia o quadro atualizado no intervalo selecionado acima. Feche o programa original do display se ele estiver usando a mesma porta COM.</small>
           </section>
           <div class="dashboard-grid">
             <section class="preview panel main-display-preview" aria-label="Prévia fiel da tela 3,5 polegadas">
@@ -114,6 +115,7 @@
               <label class="toggle"><span><b>Desativar atualizações</b><small>Esta versão não executa atualizações.</small></span><input type="checkbox" checked disabled></label>
               <label class="field"><span>COR DA BARRA DE STATUS</span><span class="color"><input id="bar-color" type="color" value="#35d7e9"> Cor de destaque</span></label>
               <label class="field"><span>PALETA DE CORES · CATPPUCCIN</span><select id="palette"><option value="latte">Latte · claro</option><option value="frappe">Frappé</option><option value="macchiato">Macchiato</option><option value="mocha">Mocha</option></select></label>
+              <label class="field"><span>INTERVALO DE ATUALIZAÇÃO DO DISPLAY</span><select id="refresh-interval"><option value="3">3 segundos</option><option value="5" selected>5 segundos (Recomendado)</option><option value="10">10 segundos</option><option value="15">15 segundos</option><option value="30">30 segundos</option><option value="60">1 minuto</option></select></label>
               <label class="toggle"><span><b>Espelhar orientação</b><small>Prévia da inversão do display.</small></span><input id="mirror" type="checkbox"></label>
               <button class="primary save" id="save">Salvar preferências</button>
               <button class="secondary export-button" id="export-logs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M5 17v4h14v-4"/></svg>Exportar histórico CSV</button>

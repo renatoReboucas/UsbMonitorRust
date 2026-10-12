@@ -19,6 +19,7 @@ pub struct AppConfig {
     pub network: String,
     pub city: String,
     pub start_with_windows: bool,
+    pub refresh_interval_secs: u32,
 }
 
 impl Default for AppConfig {
@@ -37,6 +38,7 @@ impl Default for AppConfig {
             network: "Detecção automática".to_owned(),
             city: "São Paulo, São Paulo".to_owned(),
             start_with_windows: false,
+            refresh_interval_secs: 5,
         }
     }
 }
@@ -44,6 +46,9 @@ impl Default for AppConfig {
 impl AppConfig {
     pub fn validate(mut self) -> Result<Self, String> {
         const PALETTES: [&str; 4] = ["latte", "frappe", "macchiato", "mocha"];
+        if self.refresh_interval_secs == 0 || self.refresh_interval_secs > 3600 {
+            self.refresh_interval_secs = 5;
+        }
         if self.brightness > 100 {
             return Err("O brilho precisa estar entre 0 e 100%.".to_owned());
         }

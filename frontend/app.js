@@ -46,6 +46,7 @@ const defaults = {
   city: "São Paulo, São Paulo",
   palette: "mocha",
   startWithWindows: false,
+  refreshIntervalSecs: 5,
 };
 let settings = { ...defaults };
 let displayTemplates = [];
@@ -644,6 +645,22 @@ async function captureDisplayPng() {
   return [...new Uint8Array(await png.arrayBuffer())];
 }
 
+function getRefreshIntervalMs() {
+  const secs = Number(settings.refreshIntervalSecs) || 5;
+  return Math.max(1, secs) * 1000;
+}
+
+function startDisplayRefresh() {
+  clearInterval(displayRefreshTimer);
+  displayRefreshTimer = null;
+  if (!displayTransmitting) return;
+
+  sendDisplayFrame().catch((error) => console.error("Falha no primeiro envio do display:", error));
+  displayRefreshTimer = setInterval(() => {
+    sendDisplayFrame().catch((error) => console.error("Falha na atualização automática do display:", error));
+  }, getRefreshIntervalMs());
+}
+
 async function sendDisplayFrame() {
   if (frameSendRunning) return;
   frameSendRunning = true;
@@ -653,7 +670,7 @@ async function sendDisplayFrame() {
     const imagePng = await captureDisplayPng();
     setTransmissionState("Enviando quadro completo para o display…");
     const result = await invoke("send_display_frame", { imagePng });
-    const seconds = Math.round(DISPLAY_REFRESH_MS / 1000);
+    const seconds = Number(settings.refreshIntervalSecs) || 5;
     setTransmissionState(`Tela enviada com sucesso (${result.width} × ${result.height}). Próxima atualização em ${seconds} s.`, "success");
     notice(`Layout enviado ao display (${result.width} × ${result.height}, RGB565). Próxima atualização em ${seconds} s.`);
     return result;
@@ -708,10 +725,7 @@ async function togglePort() {
     opened = true;
     displayTransmitting = true;
     updateStatus(data);
-    await sendDisplayFrame();
-    displayRefreshTimer = setInterval(() => {
-      sendDisplayFrame().catch((error) => console.error("Falha na atualização automática do display:", error));
-    }, DISPLAY_REFRESH_MS);
+    startDisplayRefresh();
   } catch (error) {
     setTransmissionState(`Não foi possível iniciar a transmissão: ${error}`, "error");
     clearInterval(displayRefreshTimer);
@@ -730,6 +744,7 @@ async function togglePort() {
 }
 
 function readSettings() {
+  const chosenInterval = Number($("#refresh-interval")?.value) || Number($("#home-refresh-interval")?.value) || 5;
   return {
     displayTemplate: selectedTemplate,
     brightness: Number($("#brightness").value),
@@ -744,10 +759,12 @@ function readSettings() {
     city: $("#city").value.trim(),
     palette: $("#palette").value,
     startWithWindows: $("#start-with-windows").checked,
+    refreshIntervalSecs: chosenInterval,
   };
 }
 
 function applySettings(config) {
+  const previousInterval = settings.refreshIntervalSecs;
   settings = { ...defaults, ...config };
   selectedTemplate = displayTemplates.some((template) => template.id === settings.displayTemplate)
     ? settings.displayTemplate
@@ -767,12 +784,19 @@ function applySettings(config) {
   $("#city").value = settings.city;
   $("#palette").value = settings.palette;
   $("#start-with-windows").checked = settings.startWithWindows;
+  const intervalStr = String(settings.refreshIntervalSecs || 5);
+  if ($("#refresh-interval")) $("#refresh-interval").value = intervalStr;
+  if ($("#home-refresh-interval")) $("#home-refresh-interval").value = intervalStr;
   applyPalette(settings.palette);
   document.documentElement.style.setProperty("--accent", settings.accentColor);
   $(".screen").style.transform = settings.rotation === 180 || settings.mirror ? "rotate(180deg)" : "";
   $(".screen").style.filter = `brightness(${settings.brightness}%)`;
   chooseTheme(selectedTemplate);
   updateCustomInfo();
+
+  if (displayTransmitting && previousInterval !== settings.refreshIntervalSecs) {
+    startDisplayRefresh();
+  }
 }
 
 async function restoreHistory() {
@@ -829,6 +853,18 @@ $("#bar-color").addEventListener("input", (event) => document.documentElement.st
 $("#palette").addEventListener("change", (event) => {
   settings.accentColor = palettes[event.target.value]?.mauve || palettes.mocha.mauve;
   applyPalette(event.target.value);
+});
+$("#home-refresh-interval")?.addEventListener("change", (event) => {
+  const val = Number(event.target.value) || 5;
+  settings.refreshIntervalSecs = val;
+  if ($("#refresh-interval")) $("#refresh-interval").value = String(val);
+  if (displayTransmitting) startDisplayRefresh();
+});
+$("#refresh-interval")?.addEventListener("change", (event) => {
+  const val = Number(event.target.value) || 5;
+  settings.refreshIntervalSecs = val;
+  if ($("#home-refresh-interval")) $("#home-refresh-interval").value = String(val);
+  if (displayTransmitting) startDisplayRefresh();
 });
 ["cpu-custom", "gpu-custom", "ram-custom"].forEach((id) => $(`#${id}`).addEventListener("input", () => {
   settings.cpuCustom = $("#cpu-custom").value.trim();
