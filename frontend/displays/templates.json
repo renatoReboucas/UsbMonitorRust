@@ -18,5 +18,10 @@
     "id": "hud",
     "name": "HUD · Cyberpunk OLED",
     "description": "Preto absoluto OLED (#000000), instrumentação neon com números de 40px e zero brilho residual."
+  },
+  {
+    "id": "console",
+    "name": "Console · verde fósforo",
+    "description": "Terminal retrô: relógio em fonte de matriz de pontos, cards de CPU, RAM e GPU com barras finas e faixa de temperatura e clima."
   }
 ]

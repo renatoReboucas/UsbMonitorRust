@@ -1,0 +1,297 @@
+/* Shared base for the 480 × 320 display layouts.
+ *
+ * Each layout only defines its palette (in its own :root block) plus the
+ * arrangement of the page grid. Everything that used to be duplicated across
+ * the four layouts lives here: reset, typography, metric cards, meters,
+ * footer bar, clock and weather primitives.
+ *
+ * The element ids (clock, cpu-usage, cpu-meter, …) are the contract consumed
+ * by runtime.js; class names are free to change.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: dark;
+
+  /* Palette contract — overridden by each layout */
+  --base: #000000;
+  --surface: #111111;
+  --surface-raised: #1a1a1a;
+  --border: #333333;
+  --text: #ffffff;
+  --text-dim: #cbd5e1;
+  --muted: #94a3b8;
+  --accent: #38bdf8;
+  --cpu: #22c55e;
+  --ram: #f43f5e;
+  --gpu: #38bdf8;
+  --warm: #fbbf24;
+  --net-up: #67e8f9;
+  --net-down: #fde047;
+
+  /* Spacing and type scale */
+  --space-1: 4px;
+  --space-2: 6px;
+  --space-3: 8px;
+  --radius: 7px;
+  --fs-label: 11px;
+  --fs-spec: 11.5px;
+  --fs-value: 24px;
+  --fs-foot-label: 10.5px;
+  --fs-foot-value: 13px;
+
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-variant-numeric: tabular-nums lining-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: var(--base);
+  color: var(--text);
+  user-select: none;
+}
+
+/* Root grid. Layouts set the rows/columns and the page background. */
+.display {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  gap: var(--space-2);
+  padding: var(--space-2);
+}
+
+/* Clock ------------------------------------------------------------------- */
+.clock-group {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-width: 0;
+  flex: 0 0 auto;
+}
+
+.clock {
+  font-size: var(--fs-value);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+}
+
+.clock-date {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Weather ----------------------------------------------------------------- */
+.weather {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.weather-icon {
+  font-size: 14px;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+
+.weather-temp {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text);
+  flex: 0 0 auto;
+}
+
+.weather-city {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.weather-sep {
+  color: var(--muted);
+  font-weight: 800;
+  flex: 0 0 auto;
+}
+
+/* Metric cards ------------------------------------------------------------ */
+.metrics {
+  display: grid;
+  gap: var(--space-2);
+  min-height: 0;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-1);
+  padding: 7px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.metric-cpu { --tone: var(--cpu); }
+.metric-ram { --tone: var(--ram); }
+.metric-gpu { --tone: var(--gpu); }
+
+.metric-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+  min-width: 0;
+  line-height: 1;
+}
+
+.metric-label {
+  font-size: var(--fs-label);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #ffffff;
+  background: color-mix(in srgb, var(--tone) 35%, transparent);
+  border: 1px solid var(--tone);
+  border-radius: 4px;
+  padding: 1px 5px;
+  flex: 0 0 auto;
+}
+
+.metric-spec {
+  font-size: var(--fs-spec);
+  font-weight: 700;
+  color: var(--text-dim);
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
+}
+
+.metric-main {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+
+.metric-value {
+  font-size: var(--fs-value);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--tone);
+  flex: 0 0 auto;
+}
+
+.metric-name {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--muted);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.meter {
+  width: 100%;
+  height: 8px;
+  background: color-mix(in srgb, #ffffff 12%, transparent);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.meter-fill {
+  display: block;
+  width: 0%;
+  height: 100%;
+  background: var(--tone);
+  border-radius: inherit;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Footer bar -------------------------------------------------------------- */
+.footer {
+  display: grid;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.footer-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 100%;
+  padding: 0 3px;
+  border-right: 1px solid color-mix(in srgb, var(--text) 16%, transparent);
+  white-space: nowrap;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.footer-item:last-child {
+  border-right: 0;
+}
+
+.footer-label {
+  font-size: var(--fs-foot-label);
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: var(--accent);
+  flex: 0 0 auto;
+}
+
+.footer-value {
+  font-size: var(--fs-foot-value);
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.footer-net {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.net-upload { color: var(--net-up); }
+.net-down { color: var(--net-down); }
+
+.footer-temperature {
+  color: var(--warm);
+}

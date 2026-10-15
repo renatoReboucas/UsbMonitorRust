@@ -7,7 +7,7 @@ use std::{
 };
 
 use serde::Serialize;
-use sysinfo::{Networks, System};
+use sysinfo::{Components, Networks, System};
 use tauri::{AppHandle, Manager};
 
 use crate::{
@@ -19,6 +19,9 @@ use crate::{
 
 const SAMPLE_INTERVAL: Duration = Duration::from_secs(1);
 const LOG_CAPACITY: usize = 3_600;
+/// The ACPI/WMI thermal query is heavier than the other reads, so it is
+/// refreshed on its own, slower cadence.
+const TEMPERATURE_INTERVAL: Duration = Duration::from_secs(5);
 
 #[derive(Clone, Default, Serialize)]
 pub struct SystemMetrics {
@@ -28,6 +31,7 @@ pub struct SystemMetrics {
     pub cpu_name: Option<String>,
     pub cpu_usage_percent: Option<f32>,
     pub cpu_frequency_mhz: Option<u64>,
+    pub cpu_temperature_c: Option<u32>,
     pub ram_used_bytes: u64,
     pub ram_total_bytes: u64,
     pub gpu_name: Option<String>,
@@ -95,6 +99,9 @@ fn collect_loop(state: TelemetryState, app: AppHandle, tray_state: TrayState) {
     let mut previous_network = network_totals(&networks);
     let mut last_sample = Instant::now();
     let mut last_tray_update = Instant::now();
+    let mut components = Components::new_with_refreshed_list();
+    let mut cpu_temperature_c = cpu::temperature_celsius(&components);
+    let mut last_temperature_read = Instant::now();
     let nvml = match NvidiaTelemetry::load() {
         Ok(nvml) => Some(nvml),
         Err(error) => {
@@ -110,6 +117,11 @@ fn collect_loop(state: TelemetryState, app: AppHandle, tray_state: TrayState) {
         system.refresh_cpu_all();
         system.refresh_memory();
         networks.refresh(true);
+        if last_temperature_read.elapsed() >= TEMPERATURE_INTERVAL {
+            last_temperature_read = Instant::now();
+            components.refresh(true);
+            cpu_temperature_c = cpu::temperature_celsius(&components);
+        }
 
         let (received, transmitted) = network_totals(&networks);
         let (ram_used_bytes, ram_total_bytes) = ram::usage_bytes(&system);
@@ -124,6 +136,7 @@ fn collect_loop(state: TelemetryState, app: AppHandle, tray_state: TrayState) {
             cpu_name: cpu::name(&system),
             cpu_usage_percent: cpu::usage(&system),
             cpu_frequency_mhz: cpu::frequency_mhz(&system),
+            cpu_temperature_c,
             ram_used_bytes,
             ram_total_bytes,
             upload_bytes_per_sec: rate(transmitted, previous_network.1, elapsed),
@@ -177,7 +190,7 @@ pub fn export_logs(app: &AppHandle, state: &TelemetryState) -> Result<String, St
         .as_millis();
     let path = directory.join(format!("telemetria-{timestamp}.csv"));
     let mut csv = String::from(
-        "timestamp_unix_ms,cpu_name,cpu_usage_percent,cpu_frequency_mhz,ram_used_bytes,ram_total_bytes,gpu_name,gpu_usage_percent,gpu_temperature_c,vram_used_bytes,vram_total_bytes,upload_bytes_per_sec,download_bytes_per_sec,network_interfaces,uptime_seconds\r\n",
+        "timestamp_unix_ms,cpu_name,cpu_usage_percent,cpu_frequency_mhz,cpu_temperature_c,ram_used_bytes,ram_total_bytes,gpu_name,gpu_usage_percent,gpu_temperature_c,vram_used_bytes,vram_total_bytes,upload_bytes_per_sec,download_bytes_per_sec,network_interfaces,uptime_seconds\r\n",
     );
     for sample in samples {
         let row = [
@@ -185,6 +198,7 @@ pub fn export_logs(app: &AppHandle, state: &TelemetryState) -> Result<String, St
             csv_text(sample.cpu_name.as_deref()),
             csv_number(sample.cpu_usage_percent),
             csv_number(sample.cpu_frequency_mhz),
+            csv_number(sample.cpu_temperature_c),
             sample.ram_used_bytes.to_string(),
             sample.ram_total_bytes.to_string(),
             csv_text(sample.gpu_name.as_deref()),

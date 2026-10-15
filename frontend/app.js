@@ -28,6 +28,12 @@ const palettes = {
     text: "#cdd6f4", subtext0: "#a6adc8", mauve: "#cba6f7", green: "#a6e3a1",
     pink: "#f5c2e7", blue: "#89b4fa", peach: "#fab387", red: "#f38ba8",
   },
+  console: {
+    label: "Console",
+    base: "#0a0c0b", mantle: "#111513", crust: "#0d100e", surface0: "#232a26",
+    text: "#e8ece9", subtext0: "#7f8b83", mauve: "#4ade80", green: "#4ade80",
+    pink: "#c084fc", blue: "#3b82f6", peach: "#fbbf24", red: "#f97316",
+  },
 };
 const $ = (selector) => document.querySelector(selector);
 const historySamples = [];
@@ -508,6 +514,42 @@ function copyComputedStyles(source, clone) {
   });
 }
 
+const fontDataUrlCache = new Map();
+
+// The capture renders into an SVG <img> loaded from a data: URL, where a
+// relative url("./fonts/…") cannot resolve. Rewrite every local font URL as a
+// data: URI so @font-face keeps working inside the foreignObject.
+async function inlineLocalFontUrls(css, baseUrl) {
+  const targets = new Set();
+  for (const match of css.matchAll(/url\(\s*(['"]?)([^'")]+)\1\s*\)/g)) {
+    const value = match[2];
+    if (/^(data:|blob:|https?:|#)/i.test(value)) continue;
+    targets.add(value);
+  }
+  let result = css;
+  for (const value of targets) {
+    let dataUrl = fontDataUrlCache.get(value);
+    if (!dataUrl) {
+      try {
+        const response = await fetch(new URL(value, baseUrl).href);
+        if (!response.ok) continue;
+        const bytes = new Uint8Array(await response.arrayBuffer());
+        let binary = "";
+        for (let index = 0; index < bytes.length; index += 0x2000) {
+          binary += String.fromCharCode(...bytes.subarray(index, index + 0x2000));
+        }
+        dataUrl = `data:font/woff2;base64,${btoa(binary)}`;
+      } catch (_ignored) {
+        // Font unavailable: keep the original url() and let the fallback run.
+        continue;
+      }
+      fontDataUrlCache.set(value, dataUrl);
+    }
+    result = result.split(value).join(dataUrl);
+  }
+  return result;
+}
+
 async function loadCaptureFrame() {
   if (!captureFrame) {
     captureFrame = document.createElement("iframe");
@@ -560,8 +602,17 @@ async function captureDisplayPng() {
   const body = frameDocument?.body;
   if (!body) throw new Error("O layout selecionado ainda não está pronto para transmissão.");
 
+  // Freeze transitions/animations before reading computed styles: otherwise a
+  // width transition (the meters) is captured mid-flight and the device shows
+  // nearly empty bars.
+  const freezeStyles = frameDocument.createElement("style");
+  freezeStyles.textContent = "*,*::before,*::after{transition:none!important;animation:none!important}";
+  (frameDocument.head || frameDocument.documentElement).append(freezeStyles);
+  void frameDocument.body.offsetWidth;
+
   const bodyClone = body.cloneNode(true);
   copyComputedStyles(body, bodyClone);
+  freezeStyles.remove();
   bodyClone.querySelectorAll("script").forEach((script) => script.remove());
 
   // Collect all CSS rules from the iframe's stylesheets and inline them
@@ -594,6 +645,8 @@ async function captureDisplayPng() {
   }
 
   if (inlinedCss) {
+    inlinedCss = await inlineLocalFontUrls(inlinedCss, frameDocument.baseURI);
+    inlinedCss += "*,*::before,*::after{transition:none!important;animation:none!important}\n";
     const styleEl = frameDocument.createElementNS("http://www.w3.org/1999/xhtml", "style");
     styleEl.textContent = inlinedCss;
     bodyClone.insertBefore(styleEl, bodyClone.firstChild);

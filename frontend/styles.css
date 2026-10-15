@@ -338,6 +338,7 @@ footer span { padding: 0 4px; color: var(--border); }
 .template-reference { background: radial-gradient(ellipse at 15% 45%, #184789, #071943 64%, #04112b); }
 .template-compact { background: radial-gradient(ellipse at top, #30264c, #11111b 75%); }
 .template-minimal { background: linear-gradient(135deg, #eff1f5, #ccd0da); }
+.template-console { background: radial-gradient(ellipse at 20% 20%, #14211a, #0a0c0b 70%); }
 .badge { position: absolute; top: 10px; right: 10px; padding: 5px 7px; border: 1px solid #ffffff26; border-radius: 6px; background: #11121dd9; color: #e5e5ee; font-size: 8px; font-weight: 650; letter-spacing: .4px; }
 .theme-card strong, .theme-card small { display: block; margin-right: 12px; margin-left: 12px; }
 .theme-card strong { margin-top: 12px; font-size: 11px; font-weight: 650; }
@@ -376,6 +377,8 @@ footer span { padding: 0 4px; color: var(--border); }
 [data-palette="latte"] .topbar { background: color-mix(in srgb, var(--bg) 90%, transparent); }
 [data-palette="latte"] .nav-item.active { background: color-mix(in srgb, var(--accent) 12%, var(--panel)); }
 [data-palette="latte"] .theme-card { color: var(--text); }
+
+[data-palette="console"] { color-scheme: dark; }
 
 @media (min-width: 1500px) {
   main { padding-right: 54px; padding-left: 54px; }

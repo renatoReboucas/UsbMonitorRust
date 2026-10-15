@@ -60,21 +60,31 @@ com os métodos recuperados, não como prova isolada do protocolo.
   como quadros RGB565 ao display.
 - `weather.rs`: consulta Open-Meteo para geocodificação e previsão atual, com
   cache de 15 minutos e cidade/região editáveis; o padrão é São Paulo, SP.
-- `tray.rs` também atualiza CPU, RAM, GPU, temperatura disponível, rede e uptime
+- `tray.rs` usa o ícone do aplicativo (`icons/32x32.png`) e também atualiza
+  CPU, RAM, GPU, CPU TEMP, GPU TEMP, rede e uptime
   no menu/tooltip da bandeja, a cada cinco segundos. A ação “Liberar porta
   serial” desconecta uma porta aberta por esta instância mesmo com a janela
   oculta.
-- Catppuccin Latte, Frappé, Macchiato e Mocha são paletas persistidas. Para
+- Catppuccin Latte, Frappé, Macchiato e Mocha, mais a paleta própria Console
+  (verde fósforo, definida no tema `console`), são paletas persistidas. Para
   adicionar um layout HTML, crie `<id>.html` em `frontend\displays` e inclua o
   ID e metadados em `templates.json`; `runtime.js` fornece os dados dinâmicos.
+  O tema `console` usa a fonte local `frontend\displays\fonts\doto.woff2` em
+  todos os textos para manter o visual de terminal sem depender de rede. Na
+  captura para o display físico, `app.js` reescreve as URLs de fonte locais como
+  data URI (para o `@font-face` resolver dentro do `foreignObject` do SVG) e
+  desativa transições antes de ler os estilos, senão os medidores saem vazios.
 
 ## Limites ainda abertos
 
 - O protocolo foi confirmado pela descompilação estática do programa original,
   mas ainda falta validar um quadro no hardware físico. A transmissão usa o
   perfil paisagem 480 × 320 do layout atual.
-- A GPU é consultada por NVML NVIDIA; métricas de GPU AMD/Intel e temperatura
-  da CPU ainda não estão disponíveis nesta versão. A previsão é de fonte
+- A GPU é consultada por NVML NVIDIA, então o app é compatível apenas com
+  placas NVIDIA; métricas de GPU AMD/Intel aparecem como N/D. A temperatura da
+  CPU passa a ser lida da zona térmica ACPI via WMI (`MSAcpi_ThermalZoneTemperature`,
+  exposta por `sysinfo::Components`), com fallback `CPU: N/D` quando a placa não
+  publica zona utilizável. A previsão é de fonte
   pública Open-Meteo; a cidade configurada é enviada para geocodificação e
   previsão, mas nenhuma telemetria do PC é transmitida.
 - O gráfico mantém amostras em memória por até uma hora e mostra no máximo os

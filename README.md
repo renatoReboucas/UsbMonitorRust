@@ -63,23 +63,37 @@ Os instaladores serão gravados em:
 ## Recursos
 
 - CPU, memória, rede e uptime coletados localmente a cada segundo.
+- Temperatura da CPU pela zona térmica ACPI via WMI
+  (`MSAcpi_ThermalZoneTemperature`). Em placas que não publicam uma zona
+  utilizável, o valor é apresentado como `CPU: N/D`.
 - Utilização, temperatura e VRAM NVIDIA via NVML, quando o driver NVIDIA
   disponibiliza `nvml.dll`; métricas indisponíveis são apresentadas como N/D.
+
+> [!IMPORTANT]
+> A leitura da GPU é compatível **apenas com placas NVIDIA**, pois depende da
+> NVML (`nvml.dll`). GPU Intel/AMD não é suportada e aparece como N/D.
 - Gráfico com até dois minutos visíveis; o buffer em memória e a exportação
   guardam até uma hora de amostras.
 - Preferências validadas e persistidas em JSON no diretório de configuração do
   aplicativo; inicialização do Windows configurável.
 - Bandeja do sistema: clique ou “Abrir UsbMonitor” mostra a janela; fechar a
-  janela a oculta; “Encerrar” finaliza o aplicativo. O menu e a dica da bandeja
-  exibem CPU, RAM, GPU, temperatura disponível, rede e uptime. “Liberar porta
+  janela a oculta; “Encerrar” finaliza o aplicativo. A bandeja usa o mesmo
+  ícone do aplicativo (`src-tauri/icons`), e o menu e a dica exibem CPU, RAM,
+  GPU, CPU TEMP, GPU TEMP, rede e uptime. “Liberar porta
   serial” fecha uma COM aberta por esta instância, mesmo com a janela oculta.
 - Exportação das amostras para CSV em `Downloads\UsbMonitorRust`.
 - Detecção do adaptador USB serial `VID_1A86:PID_5722`, com transmissão real
   do layout selecionado para o display.
-- Prévia e envio do dashboard em 480 × 320, com CPU, RAM, GPU, rede e clima;
-  cidade editável no formato `Cidade, Estado, País`.
+- Prévia e envio do dashboard em 480 × 320, com CPU, RAM, GPU, temperatura da
+  CPU, rede e clima; a cidade é editável no formato `Cidade, Estado, País` e o
+  rodapé de cada layout exibe `CPU: XX°C`.
 - Layouts da prévia definidos por HTML/CSS em `frontend\displays`; selecione
   um layout na página **Layouts HTML** ou na configuração rápida do Monitor.
+  Os layouts são `reference`, `compact`, `minimal`, `hud` e `console`; o
+  `console` carrega a fonte Doto de `frontend\displays\fonts` (matriz de pontos)
+  e usa a mesma fonte em todos os textos, então funciona offline. Ao transmitir
+  para o display físico, o aplicativo embute a fonte como data URI e congela
+  transições, para o quadro sair idêntico à prévia.
   Para criar outro, copie `reference.html` e `reference.css` dentro de
   `frontend\displays`, renomeie os arquivos para o mesmo `<id>` e ajuste o link
   da folha de estilos e o título. Registre ID, nome e descrição em
@@ -89,8 +103,8 @@ Os instaladores serão gravados em:
 - Previsão atual via Open-Meteo, iniciando em São Paulo, SP. A consulta envia o
   nome da cidade ao serviço público de geocodificação/previsão; nenhum dado de
   telemetria do computador é transmitido.
-- Temas de interface Catppuccin Latte, Frappé, Macchiato e Mocha, com seleção
-  persistente nas configurações.
+- Temas de interface Catppuccin Latte, Frappé, Macchiato e Mocha, mais a paleta
+  própria Console (verde fósforo), com seleção persistente nas configurações.
 
 ## Display físico e transmissão serial
 
@@ -118,8 +132,11 @@ programa original do display, terminais seriais e outras instâncias deste app.
 Fechar a janela do UsbMonitor apenas o oculta na bandeja; use “Liberar porta
 serial” para fechar a conexão da instância atual ou “Encerrar” para sair.
 
-Esta versão obtém métricas de GPU pela NVML NVIDIA. Métricas equivalentes de
-GPU Intel/AMD e temperatura da CPU não foram implementadas. O brilho é aplicado
+Esta versão obtém métricas de GPU pela NVML NVIDIA, portanto é compatível
+**apenas com GPUs NVIDIA**; métricas equivalentes de GPU Intel/AMD aparecem como
+N/D. A temperatura da CPU é lida da zona térmica ACPI via WMI, sem software
+externo, mas pode ficar indisponível (`CPU: N/D`) em placas que não publicam
+uma zona utilizável. O brilho é aplicado
 à imagem transmitida, mas não altera a iluminação física do painel; a rotação
 de 180° é aplicada aos pixels enviados.
 

@@ -3,105 +3,98 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#071329">
+    <link rel="stylesheet" href="./display-base.css">
     <link rel="stylesheet" href="./reference.css">
     <script src="./runtime.js" defer></script>
     <title>Layout de Referência · 3.5"</title>
   </head>
   <body>
     <main class="display">
-      <!-- PAINEL ESQUERDO: Relógio, Sistema e Clima -->
-      <section class="overview">
-        <header class="sys-chip">
-          <span class="sys-icon">▣</span>
-          <div class="sys-meta">
-            <b id="computer">Este computador</b>
-            <small id="os">Windows</small>
-          </div>
+      <!-- Coluna esquerda: sistema, relógio e clima -->
+      <section class="overview" aria-label="Relógio, sistema e clima">
+        <header class="device-chip">
+          <span class="device-icon" aria-hidden="true">▣</span>
+          <b id="computer">Este computador</b>
+          <small id="os">Windows</small>
         </header>
 
         <div class="clock-box">
-          <time id="clock">--:--</time>
-          <div id="date" class="date-badge">-- --- ----</div>
+          <time id="clock" class="clock">--:--</time>
+          <div id="date" class="clock-date">-- --- ----</div>
         </div>
 
-        <section class="weather-box">
-          <div class="weather-row-top">
-            <span id="weather-icon" class="weather-icon">☁</span>
-            <b id="weather-temperature">—°C</b>
+        <section class="weather-box" aria-label="Clima atual">
+          <div class="weather">
+            <span id="weather-icon" class="weather-icon" aria-hidden="true">☁</span>
+            <b id="weather-temperature" class="weather-temp">—°C</b>
             <span id="weather-city" class="weather-city">São Paulo</span>
           </div>
-          <div class="weather-row-bottom">
+          <div class="weather-meta">
             <span id="weather-humidity">◉ —%</span>
             <small id="weather-description">CLIMA</small>
           </div>
-          <!-- Elementos ocultos para compatibilidade -->
-          <span id="weather-high" style="display:none">↑ —°</span>
-          <span id="weather-low" style="display:none">↓ —°</span>
         </section>
       </section>
 
-      <!-- PAINEL DIREITO: 3 Cartões de Telemetria (CPU, RAM, GPU) -->
-      <section class="metrics">
-        <!-- CPU -->
-        <article class="metric cpu">
+      <!-- Coluna direita: telemetria de CPU, RAM e GPU -->
+      <section class="metrics" aria-label="Uso de CPU, memória e GPU">
+        <article class="metric metric-cpu">
           <div class="metric-head">
-            <span class="metric-tag">CPU</span>
+            <span class="metric-label">CPU</span>
             <span id="cpu-frequency" class="metric-spec">— GHz</span>
           </div>
-          <div class="metric-core">
-            <strong id="cpu-usage" class="metric-val">N/D</strong>
-            <div class="meter-track"><i id="cpu-meter"></i></div>
+          <div class="metric-main">
+            <strong id="cpu-usage" class="metric-value">N/D</strong>
+            <div class="meter"><i id="cpu-meter" class="meter-fill"></i></div>
           </div>
-          <small id="cpu-name" class="metric-foot">Processador</small>
+          <small id="cpu-name" class="metric-name">Processador</small>
         </article>
 
-        <!-- RAM -->
-        <article class="metric ram">
+        <article class="metric metric-ram">
           <div class="metric-head">
-            <span class="metric-tag">RAM</span>
+            <span class="metric-label">RAM</span>
             <span id="ram-total" class="metric-spec">N/D</span>
           </div>
-          <div class="metric-core">
-            <strong id="ram-usage" class="metric-val">N/D</strong>
-            <div class="meter-track"><i id="ram-meter"></i></div>
+          <div class="metric-main">
+            <strong id="ram-usage" class="metric-value">N/D</strong>
+            <div class="meter"><i id="ram-meter" class="meter-fill"></i></div>
           </div>
-          <small id="ram-name" class="metric-foot">Memória do sistema</small>
+          <small id="ram-name" class="metric-name">Memória do sistema</small>
         </article>
 
-        <!-- GPU -->
-        <article class="metric gpu">
+        <article class="metric metric-gpu">
           <div class="metric-head">
-            <span class="metric-tag">GPU</span>
+            <span class="metric-label">GPU</span>
             <span id="gpu-temperature" class="metric-spec">N/D</span>
           </div>
-          <div class="metric-core">
-            <strong id="gpu-usage" class="metric-val">N/D</strong>
-            <div class="meter-track"><i id="gpu-meter"></i></div>
+          <div class="metric-main">
+            <strong id="gpu-usage" class="metric-value">N/D</strong>
+            <div class="meter"><i id="gpu-meter" class="meter-fill"></i></div>
           </div>
-          <small id="gpu-name" class="metric-foot">GPU indisponível</small>
+          <small id="gpu-name" class="metric-name">GPU indisponível</small>
         </article>
       </section>
 
-      <!-- BARRA INFERIOR: Uptime, Rede, Status e VRAM -->
-      <footer class="footer-bar">
-        <div class="foot-col">
-          <span class="foot-lbl">UPTIME</span>
-          <b id="uptime" class="foot-val">—</b>
+      <!-- Rodapé: uptime, rede, temperatura da CPU e VRAM -->
+      <footer class="footer" aria-label="Resumo do sistema">
+        <div class="footer-item">
+          <span class="footer-label">UPTIME</span>
+          <b id="uptime" class="footer-value">—</b>
         </div>
-        <div class="foot-col net-col">
-          <span class="foot-lbl">REDE</span>
-          <div class="net-row">
-            <b id="upload">↑ —</b>
-            <b id="download">↓ —</b>
+        <div class="footer-item">
+          <div class="footer-net">
+            <b id="upload" class="net-upload">↑ —</b>
+            <b id="download" class="net-down">↓ —</b>
           </div>
         </div>
-        <div class="foot-col">
-          <span class="foot-lbl">STATUS</span>
-          <b id="network" class="foot-val">—</b>
+        <div class="footer-item">
+          <b id="cpu-temperature" class="footer-value footer-temperature">CPU: —°C</b>
         </div>
-        <div class="foot-col">
-          <span class="foot-lbl">VRAM</span>
-          <b id="vram" class="foot-val">—</b>
+        <div class="footer-item">
+          <span class="footer-label">VRAM</span>
+          <b id="vram" class="footer-value">—</b>
         </div>
       </footer>
     </main>

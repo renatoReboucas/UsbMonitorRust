@@ -48,6 +48,18 @@ const paletteColors = {
     gpu: "#89b4fa",
     warm: "#fab387",
   },
+  console: {
+    base: "#0a0c0b",
+    surface: "#111513",
+    border: "#232a26",
+    text: "#e8ece9",
+    muted: "#7f8b83",
+    accent: "#4ade80",
+    cpu: "#4ade80",
+    ram: "#c084fc",
+    gpu: "#3b82f6",
+    warm: "#fbbf24",
+  },
 };
 
 function setText(id, value, fallback = "N/D") {
@@ -65,10 +77,6 @@ function setMeter(id, value) {
     const clamped = Math.max(0, Math.min(100, Number(value) || 0));
     element.style.width = `${clamped}%`;
   }
-}
-
-function formatGb(bytes) {
-  return Number.isFinite(bytes) ? `${(bytes / (1024 ** 3)).toFixed(1)} GB` : "N/D";
 }
 
 function formatNet(bytes) {
@@ -112,10 +120,14 @@ function render({ metrics = {}, weather = null, settings = {}, clock = {}, palet
   setText("weather-high", weather ? `↑ ${Math.round(weather.highC)}°` : "↑ —°");
   setText("weather-low", weather ? `↓ ${Math.round(weather.lowC)}°` : "↓ —°");
   setText("weather-humidity", weather ? `◉ ${weather.humidityPercent}%` : "◉ —%");
+  setText("weather-humidity-value", weather ? `${weather.humidityPercent}%` : "—%");
 
   setText("cpu-usage", percentage(cpu));
   setText("cpu-frequency", frequency);
   setText("cpu-name", settings.cpuCustom || metrics.cpu_name || "Processador");
+  const cpuTemp = metrics.cpu_temperature_c;
+  setText("cpu-temperature", cpuTemp == null ? "CPU: —°C" : `CPU: ${cpuTemp}°C`);
+  setText("cpu-temp", cpuTemp == null ? "—°C" : `${cpuTemp}°C`);
   setMeter("cpu-meter", cpu);
 
   setText("ram-usage", percentage(ram));
@@ -136,16 +148,15 @@ function render({ metrics = {}, weather = null, settings = {}, clock = {}, palet
   const days = Math.floor(uptime / 86400);
   const hours = Math.floor((uptime % 86400) / 3600);
   const minutes = Math.floor((uptime % 3600) / 60);
-  const uptimeStr = days > 0 ? `${days}d ${hours}h` : `${hours}h ${minutes}m`;
+  const uptimeStr = days > 0 ? `${days}d${hours}h` : `${hours}h${minutes}m`;
   setText("uptime", uptimeStr);
 
   const upSpeed = formatNet(metrics.upload_bytes_per_sec);
   const downSpeed = formatNet(metrics.download_bytes_per_sec);
-  setText("upload", `↑ ${upSpeed}`);
-  setText("download", `↓ ${downSpeed}`);
-  setText("network", metrics.network_interfaces > 0 ? "ONLINE" : "OFFLINE");
+  setText("upload", `↑${upSpeed}`);
+  setText("download", `↓${downSpeed}`);
   setText("vram", metrics.vram_used_bytes != null && metrics.vram_total_bytes
-    ? `${(metrics.vram_used_bytes / (1024 ** 3)).toFixed(1)} / ${(metrics.vram_total_bytes / (1024 ** 3)).toFixed(0)} GB`
+    ? `${(metrics.vram_used_bytes / (1024 ** 3)).toFixed(1)}/${(metrics.vram_total_bytes / (1024 ** 3)).toFixed(0)}G`
     : "N/D");
 }
 

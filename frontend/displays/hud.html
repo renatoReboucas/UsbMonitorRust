@@ -3,109 +3,93 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#000000">
+    <link rel="stylesheet" href="./display-base.css">
     <link rel="stylesheet" href="./hud.css">
     <script src="./runtime.js" defer></script>
     <title>HUD · Cyberpunk OLED · 3.5"</title>
   </head>
   <body>
     <main class="display">
-      <!-- HEADER HUD -->
-      <header class="hud-header">
-        <div class="hud-brand">
-          <span class="hud-marker">◤</span>
+      <header class="display-header">
+        <div class="display-brand">
+          <span class="brand-mark" aria-hidden="true">◤</span>
           <div>
             <b id="computer">SYS-MONITOR</b>
             <small id="os">WINDOWS</small>
           </div>
         </div>
 
-        <div class="hud-clock-wrap">
-          <time id="clock">--:--</time>
-          <span id="date" class="hud-date">-- --- ----</span>
+        <div class="clock-group">
+          <time id="clock" class="clock">--:--</time>
+          <span id="date" class="clock-date">-- --- ----</span>
         </div>
 
-        <div class="hud-weather">
-          <div class="weather-row">
-            <span id="weather-icon">☁</span>
-            <b id="weather-temperature">—°C</b>
-          </div>
-          <span id="weather-city" class="hud-city-txt">SÃO PAULO</span>
-          <!-- Elementos preservados para runtime -->
-          <small id="weather-description" style="display:none">CLIMA</small>
-          <span id="weather-high" style="display:none">↑ —°</span>
-          <span id="weather-low" style="display:none">↓ —°</span>
-          <span id="weather-humidity" style="display:none">◉ —%</span>
+        <div class="weather">
+          <span id="weather-icon" class="weather-icon" aria-hidden="true">☁</span>
+          <b id="weather-temperature" class="weather-temp">—°C</b>
+          <span id="weather-city" class="weather-city">SÃO PAULO</span>
         </div>
       </header>
 
-      <!-- 3 MÓDULOS DE TELEMETRIA HUD -->
-      <section class="hud-grid">
-        <!-- CPU -->
-        <article class="hud-card cpu">
-          <div class="card-top">
-            <span class="card-badge">CPU</span>
-            <span id="cpu-frequency" class="card-spec">— GHz</span>
+      <!-- Três módulos de telemetria: CPU, RAM e GPU -->
+      <section class="metrics" aria-label="Uso de CPU, memória e GPU">
+        <article class="metric metric-cpu">
+          <div class="metric-head">
+            <span class="metric-label">CPU</span>
+            <span id="cpu-frequency" class="metric-spec">— GHz</span>
           </div>
-          <div class="card-center">
-            <strong id="cpu-usage">N/D</strong>
+          <div class="metric-main">
+            <strong id="cpu-usage" class="metric-value">N/D</strong>
+            <div class="meter"><i id="cpu-meter" class="meter-fill"></i></div>
           </div>
-          <div class="hud-gauge">
-            <div class="hud-gauge-bar"><i id="cpu-meter"></i></div>
-          </div>
-          <small id="cpu-name" class="card-name">Processador</small>
+          <small id="cpu-name" class="metric-name">Processador</small>
         </article>
 
-        <!-- RAM -->
-        <article class="hud-card ram">
-          <div class="card-top">
-            <span class="card-badge">RAM</span>
-            <span id="ram-total" class="card-spec">N/D</span>
+        <article class="metric metric-ram">
+          <div class="metric-head">
+            <span class="metric-label">RAM</span>
+            <span id="ram-total" class="metric-spec">N/D</span>
           </div>
-          <div class="card-center">
-            <strong id="ram-usage">N/D</strong>
+          <div class="metric-main">
+            <strong id="ram-usage" class="metric-value">N/D</strong>
+            <div class="meter"><i id="ram-meter" class="meter-fill"></i></div>
           </div>
-          <div class="hud-gauge">
-            <div class="hud-gauge-bar"><i id="ram-meter"></i></div>
-          </div>
-          <small id="ram-name" class="card-name">Memória do sistema</small>
+          <small id="ram-name" class="metric-name">Memória do sistema</small>
         </article>
 
-        <!-- GPU -->
-        <article class="hud-card gpu">
-          <div class="card-top">
-            <span class="card-badge">GPU</span>
-            <span id="gpu-temperature" class="card-spec">N/D</span>
+        <article class="metric metric-gpu">
+          <div class="metric-head">
+            <span class="metric-label">GPU</span>
+            <span id="gpu-temperature" class="metric-spec">N/D</span>
           </div>
-          <div class="card-center">
-            <strong id="gpu-usage">N/D</strong>
+          <div class="metric-main">
+            <strong id="gpu-usage" class="metric-value">N/D</strong>
+            <div class="meter"><i id="gpu-meter" class="meter-fill"></i></div>
           </div>
-          <div class="hud-gauge">
-            <div class="hud-gauge-bar"><i id="gpu-meter"></i></div>
-          </div>
-          <small id="gpu-name" class="card-name">GPU indisponível</small>
+          <small id="gpu-name" class="metric-name">GPU indisponível</small>
         </article>
       </section>
 
-      <!-- BARRA DE STATUS INFERIOR -->
-      <footer class="hud-footer">
-        <div class="hud-stat">
-          <span class="hud-lbl">UPTIME</span>
-          <b id="uptime">—</b>
+      <!-- Rodapé: uptime, rede, temperatura da CPU e VRAM -->
+      <footer class="footer" aria-label="Resumo do sistema">
+        <div class="footer-item">
+          <span class="footer-label">UPTIME</span>
+          <b id="uptime" class="footer-value">—</b>
         </div>
-        <div class="hud-stat net-stat">
-          <span class="hud-lbl">NET</span>
-          <div class="net-duo">
-            <b id="upload">↑ —</b>
-            <b id="download">↓ —</b>
+        <div class="footer-item">
+          <div class="footer-net">
+            <b id="upload" class="net-upload">↑ —</b>
+            <b id="download" class="net-down">↓ —</b>
           </div>
         </div>
-        <div class="hud-stat">
-          <span class="hud-lbl">LINK</span>
-          <b id="network">ONLINE</b>
+        <div class="footer-item">
+          <b id="cpu-temperature" class="footer-value footer-temperature">CPU: —°C</b>
         </div>
-        <div class="hud-stat">
-          <span class="hud-lbl">VRAM</span>
-          <b id="vram">—</b>
+        <div class="footer-item">
+          <span class="footer-label">VRAM</span>
+          <b id="vram" class="footer-value">—</b>
         </div>
       </footer>
     </main>

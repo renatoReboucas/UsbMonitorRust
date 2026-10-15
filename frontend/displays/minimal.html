@@ -3,101 +3,88 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <meta name="theme-color" content="#f1f5f9">
+    <link rel="stylesheet" href="./display-base.css">
     <link rel="stylesheet" href="./minimal.css">
     <script src="./runtime.js" defer></script>
     <title>Layout Minimalista · 3.5"</title>
   </head>
   <body>
     <main class="display">
-      <!-- CABEÇALHO MINIMALISTA -->
-      <header class="minimal-header">
-        <div class="time-block">
-          <time id="clock">--:--</time>
-          <span id="date" class="date-chip">-- --- ----</span>
+      <!-- Relógio e clima -->
+      <header class="display-header">
+        <div class="clock-group">
+          <time id="clock" class="clock">--:--</time>
+          <span id="date" class="clock-date">-- --- ----</span>
         </div>
 
-        <div class="weather-chip">
-          <span id="weather-icon">☀</span>
-          <b id="weather-temperature">—°C</b>
-          <span class="sep">·</span>
-          <span id="weather-city" class="weather-city-name">São Paulo</span>
+        <div class="weather">
+          <span id="weather-icon" class="weather-icon" aria-hidden="true">☀</span>
+          <b id="weather-temperature" class="weather-temp">—°C</b>
+          <span class="weather-sep" aria-hidden="true">·</span>
+          <span id="weather-city" class="weather-city">São Paulo</span>
         </div>
-
-        <!-- IDs preservados para compatibilidade com runtime -->
-        <span id="computer" style="display:none">Este computador</span>
-        <small id="os" style="display:none">Windows</small>
-        <span id="weather-description" style="display:none">CLIMA</span>
-        <span id="weather-high" style="display:none">↑ —°</span>
-        <span id="weather-low" style="display:none">↓ —°</span>
-        <span id="weather-humidity" style="display:none">◉ —%</span>
       </header>
 
-      <!-- 3 CARTÕES DE LEITURA (CPU, RAM, GPU) -->
-      <section class="reading">
-        <!-- CPU -->
-        <article class="card cpu">
-          <div class="card-head">
-            <span class="card-tag">CPU</span>
-            <span id="cpu-frequency" class="card-spec">— GHz</span>
+      <!-- Três cartões de leitura: CPU, RAM e GPU -->
+      <section class="metrics" aria-label="Uso de CPU, memória e GPU">
+        <article class="metric metric-cpu">
+          <div class="metric-head">
+            <span class="metric-label">CPU</span>
+            <span id="cpu-frequency" class="metric-spec">— GHz</span>
           </div>
-          <div class="card-val-row">
-            <strong id="cpu-usage">N/D</strong>
+          <div class="metric-main">
+            <strong id="cpu-usage" class="metric-value">N/D</strong>
+            <div class="meter"><i id="cpu-meter" class="meter-fill"></i></div>
           </div>
-          <div class="meter-bar">
-            <i id="cpu-meter"></i>
-          </div>
-          <small id="cpu-name" class="card-foot">Processador</small>
+          <small id="cpu-name" class="metric-name">Processador</small>
         </article>
 
-        <!-- RAM -->
-        <article class="card ram">
-          <div class="card-head">
-            <span class="card-tag">RAM</span>
-            <span id="ram-total" class="card-spec">N/D</span>
+        <article class="metric metric-ram">
+          <div class="metric-head">
+            <span class="metric-label">RAM</span>
+            <span id="ram-total" class="metric-spec">N/D</span>
           </div>
-          <div class="card-val-row">
-            <strong id="ram-usage">N/D</strong>
+          <div class="metric-main">
+            <strong id="ram-usage" class="metric-value">N/D</strong>
+            <div class="meter"><i id="ram-meter" class="meter-fill"></i></div>
           </div>
-          <div class="meter-bar">
-            <i id="ram-meter"></i>
-          </div>
-          <small id="ram-name" class="card-foot">Memória do sistema</small>
+          <small id="ram-name" class="metric-name">Memória do sistema</small>
         </article>
 
-        <!-- GPU -->
-        <article class="card gpu">
-          <div class="card-head">
-            <span class="card-tag">GPU</span>
-            <span id="gpu-temperature" class="card-spec">N/D</span>
+        <article class="metric metric-gpu">
+          <div class="metric-head">
+            <span class="metric-label">GPU</span>
+            <span id="gpu-temperature" class="metric-spec">N/D</span>
           </div>
-          <div class="card-val-row">
-            <strong id="gpu-usage">N/D</strong>
+          <div class="metric-main">
+            <strong id="gpu-usage" class="metric-value">N/D</strong>
+            <div class="meter"><i id="gpu-meter" class="meter-fill"></i></div>
           </div>
-          <div class="meter-bar">
-            <i id="gpu-meter"></i>
-          </div>
-          <small id="gpu-name" class="card-foot">GPU indisponível</small>
+          <small id="gpu-name" class="metric-name">GPU indisponível</small>
         </article>
       </section>
 
-      <!-- RODAPÉ LIMPO -->
-      <footer class="minimal-footer">
-        <div class="foot-cell">
-          <span class="foot-title">UPTIME</span>
-          <b id="uptime">—</b>
+      <!-- Rodapé: uptime, rede, temperatura da CPU e VRAM -->
+      <footer class="footer" aria-label="Resumo do sistema">
+        <div class="footer-item">
+          <span class="footer-label">UPTIME</span>
+          <b id="uptime" class="footer-value">—</b>
         </div>
-        <div class="foot-cell net-cell">
-          <span class="foot-title">REDE</span>
-          <div class="net-speeds">
-            <span id="upload">↑ —</span>
-            <span id="download">↓ —</span>
+        <div class="footer-item">
+          <div class="footer-net">
+            <span id="upload" class="net-upload">↑ —</span>
+            <span id="download" class="net-down">↓ —</span>
           </div>
         </div>
-        <div class="foot-cell">
-          <span class="foot-title">VRAM</span>
-          <b id="vram">—</b>
+        <div class="footer-item">
+          <b id="cpu-temperature" class="footer-value footer-temperature">CPU: —°C</b>
         </div>
-        <span id="network" style="display:none">—</span>
+        <div class="footer-item">
+          <span class="footer-label">VRAM</span>
+          <b id="vram" class="footer-value">—</b>
+        </div>
       </footer>
     </main>
   </body>
