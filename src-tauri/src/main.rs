@@ -3,6 +3,7 @@
 mod config;
 mod cpu;
 mod gpu;
+mod lhm;
 mod ram;
 mod serial;
 mod startup;

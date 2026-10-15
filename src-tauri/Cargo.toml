@@ -8,6 +8,12 @@ edition = "2021"
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
+# Temperatura da CPU pelo serviço do LibreHardwareMonitor; ver `src/lhm.rs` e a
+# seção correspondente do README. É opcional em tempo de execução.
+#
+# A versão 0.0.0 é intencional: é a única cujo protocolo de pipe casa com o
+# instalador publicado pelo projeto (0.1.0 em diante trocou as mensagens).
+lhm-client = "0.0.0"
 libloading = "0.8"
 png = "0.17"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
@@ -17,3 +23,6 @@ serialport = "4"
 sysinfo = "0.33"
 tauri = { version = "2", features = ["tray-icon", "image-png"] }
 tauri-plugin-autostart = "2"
+# O runtime do tokio é criado por nós em `lhm.rs`, porque o cliente do
+# LibreHardwareMonitor é assíncrono e a telemetria roda em uma thread comum.
+tokio = { version = "1", features = ["rt", "net", "io-util", "time"] }

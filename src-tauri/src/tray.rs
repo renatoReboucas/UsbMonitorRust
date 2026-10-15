@@ -1,4 +1,9 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    os::windows::process::CommandExt,
+    path::PathBuf,
+    process::Command,
+    sync::{Arc, Mutex},
+};
 
 use tauri::{
     image::Image,
@@ -9,6 +14,13 @@ use tauri::{
 
 use crate::serial::{self, SerialState};
 use crate::telemetry::SystemMetrics;
+
+/// Não deixa um console piscando ao chamar o `cmd`.
+const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+
+/// Nome do instalador do serviço que fica ao lado do executável (`resources` no
+/// `tauri.conf.json`).
+const LHM_INSTALLER: &str = "lhm-service.msi";
 
 #[derive(Clone, Default)]
 pub struct TrayState(Arc<Mutex<Option<TrayMetrics>>>);
@@ -56,6 +68,13 @@ pub fn install(app: &App, state: &TrayState) -> tauri::Result<()> {
         None::<&str>,
     )?;
     let show = MenuItem::with_id(app, "show", "Abrir UsbMonitor", true, None::<&str>)?;
+    let install_temperature = MenuItem::with_id(
+        app,
+        "install-temperature",
+        "Instalar suporte de temperatura da CPU…",
+        true,
+        None::<&str>,
+    )?;
     let release_serial = MenuItem::with_id(
         app,
         "release-serial",
@@ -75,6 +94,7 @@ pub fn install(app: &App, state: &TrayState) -> tauri::Result<()> {
             &network,
             &uptime,
             &show,
+            &install_temperature,
             &release_serial,
             &quit,
         ],
@@ -100,6 +120,7 @@ pub fn install(app: &App, state: &TrayState) -> tauri::Result<()> {
         .menu(&menu)
         .on_menu_event(|app, event| match event.id().as_ref() {
             "show" => show_window(app),
+            "install-temperature" => install_temperature_service(app),
             "release-serial" => {
                 if let Some(state) = app.try_state::<SerialState>() {
                     if let Err(error) = serial::disconnect(&state) {
@@ -207,6 +228,56 @@ fn show_window(app: &tauri::AppHandle) {
         }
         if let Err(error) = window.set_focus() {
             eprintln!("Não foi possível focar a janela: {error}");
+        }
+    }
+}
+
+/// Caminho do instalador do serviço do LibreHardwareMonitor, copiado para junto
+/// do executável pelo `bundle.resources` do `tauri.conf.json`.
+fn temperature_installer_path(app: &AppHandle) -> Option<PathBuf> {
+    let mut candidates = Vec::new();
+    if let Ok(resource_dir) = app.path().resource_dir() {
+        candidates.push(resource_dir.join(LHM_INSTALLER));
+    }
+    if let Some(directory) = std::env::current_exe()
+        .ok()
+        .and_then(|exe| exe.parent().map(PathBuf::from))
+    {
+        candidates.push(directory.join(LHM_INSTALLER));
+    }
+    candidates.into_iter().find(|path| path.is_file())
+}
+
+/// Abre o instalador do serviço de temperatura que acompanha o aplicativo.
+///
+/// O serviço já é instalado pelo nosso instalador; esta opção é o caminho de
+/// conserto, e serve quando a elevação é recusada no setup ou quando o serviço é
+/// removido depois. O serviço vale para todos os usuários, então o Windows pede
+/// elevação: por isso a chamada passa pelo shell (`start`), em vez de criar o
+/// processo direto.
+fn install_temperature_service(app: &AppHandle) {
+    let Some(installer) = temperature_installer_path(app) else {
+        eprintln!(
+            "Instalador do LibreHardwareMonitor ({LHM_INSTALLER}) não encontrado ao lado do aplicativo."
+        );
+        return;
+    };
+
+    let result = Command::new("cmd")
+        .arg("/c")
+        .arg("start")
+        .arg("")
+        .arg(&installer)
+        .creation_flags(CREATE_NO_WINDOW)
+        .spawn();
+
+    match result {
+        Ok(_) => println!(
+            "Instalador do LibreHardwareMonitor aberto ({}); a temperatura é detectada em instantes.",
+            installer.display()
+        ),
+        Err(error) => {
+            eprintln!("Não foi possível abrir o instalador do LibreHardwareMonitor: {error}");
         }
     }
 }

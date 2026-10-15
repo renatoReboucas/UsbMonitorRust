@@ -171,39 +171,12 @@ body {
   white-space: nowrap;
 }
 
-.hero-uptime {
-  display: flex;
-  align-items: baseline;
-  gap: 5px;
-  flex: 0 0 auto;
-}
-
-.hero-uptime-label {
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-}
-
-.hero-uptime b {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--accent);
-}
-
 .hero-weather {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding-top: 6px;
-  border-top: 1px solid var(--border);
-  min-width: 0;
-}
-
-.hero-weather-main {
   display: flex;
   align-items: center;
   gap: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
   min-width: 0;
 }
 
@@ -213,17 +186,6 @@ body {
 
 .hero-weather .weather-city {
   flex: 0 1 auto;
-}
-
-.hero-weather-desc {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* Faixa de status em 2 × 2 ------------------------------------------------- */
@@ -267,7 +229,13 @@ body {
 .status-temp .status-value { color: var(--warm); }
 .status-vram .status-value { color: var(--gpu); }
 .status-humid .status-value { color: var(--cpu); }
-.status-clima .status-value { color: var(--muted); }
+.status-clima .status-value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  font-size: 15px;
+  color: var(--muted);
+}
 
 /* Cards de CPU, RAM e GPU ------------------------------------------------- */
 .cards {

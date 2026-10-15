@@ -127,7 +127,7 @@ function render({ metrics = {}, weather = null, settings = {}, clock = {}, palet
   setText("cpu-name", settings.cpuCustom || metrics.cpu_name || "Processador");
   const cpuTemp = metrics.cpu_temperature_c;
   setText("cpu-temperature", cpuTemp == null ? "CPU: —°C" : `CPU: ${cpuTemp}°C`);
-  setText("cpu-temp", cpuTemp == null ? "—°C" : `${cpuTemp}°C`);
+  setText("cpu-temp", cpuTemp == null ? "N/D" : `${cpuTemp}°C`);
   setMeter("cpu-meter", cpu);
 
   setText("ram-usage", percentage(ram));

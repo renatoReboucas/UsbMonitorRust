@@ -13,6 +13,7 @@ use tauri::{AppHandle, Manager};
 use crate::{
     cpu,
     gpu::NvidiaTelemetry,
+    lhm::HardwareMonitor,
     ram,
     tray::{self, TrayState},
 };
@@ -22,6 +23,9 @@ const LOG_CAPACITY: usize = 3_600;
 /// The ACPI/WMI thermal query is heavier than the other reads, so it is
 /// refreshed on its own, slower cadence.
 const TEMPERATURE_INTERVAL: Duration = Duration::from_secs(5);
+/// How long to wait before trying the LibreHardwareMonitor service again when
+/// it was not available (for example when the user starts it afterwards).
+const HARDWARE_MONITOR_RETRY: Duration = Duration::from_secs(30);
 
 #[derive(Clone, Default, Serialize)]
 pub struct SystemMetrics {
@@ -109,6 +113,8 @@ fn collect_loop(state: TelemetryState, app: AppHandle, tray_state: TrayState) {
             None
         }
     };
+    let mut hardware_monitor = HardwareMonitor::load();
+    let mut last_hardware_monitor_retry = Instant::now();
 
     loop {
         thread::sleep(SAMPLE_INTERVAL);
@@ -121,6 +127,19 @@ fn collect_loop(state: TelemetryState, app: AppHandle, tray_state: TrayState) {
             last_temperature_read = Instant::now();
             components.refresh(true);
             cpu_temperature_c = cpu::temperature_celsius(&components);
+            // Boards without an ACPI thermal zone (typical AM4/Ryzen desktops)
+            // only report a temperature through the LibreHardwareMonitor service.
+            if cpu_temperature_c.is_none() {
+                if let Some(monitor) = hardware_monitor.as_mut() {
+                    if !monitor.is_ready()
+                        && last_hardware_monitor_retry.elapsed() >= HARDWARE_MONITOR_RETRY
+                    {
+                        last_hardware_monitor_retry = Instant::now();
+                        monitor.reconnect();
+                    }
+                    cpu_temperature_c = monitor.cpu_temperature_celsius();
+                }
+            }
         }
 
         let (received, transmitted) = network_totals(&networks);

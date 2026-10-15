@@ -24,3 +24,7 @@ Desktop.ini
 *.ilk
 *.exp
 *.msi
+
+# Exceção: instalador do serviço do LibreHardwareMonitor, redistribuído de
+# propósito (veja THIRD-PARTY-NOTICES.md). Ele é embutido no nosso instalador.
+!src-tauri/lhm/lhm-service.msi

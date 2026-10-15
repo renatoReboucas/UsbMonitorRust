@@ -1,6 +1,6 @@
 # Engenharia reversa e estado do projeto
 
-Atualizado em 2026-10-12.
+Atualizado em 2026-10-15.
 
 ## Escopo e evidência
 
@@ -48,6 +48,9 @@ com os métodos recuperados, não como prova isolada do protocolo.
 - `src-tauri\src\main.rs`: inicialização Tauri, comandos e estado compartilhado.
 - `cpu.rs`, `ram.rs`, `gpu.rs`, `telemetry.rs`: coleta local de métricas e
   histórico circular de até 3.600 amostras (uma hora).
+- `lhm.rs`: temperatura da CPU pelo serviço do LibreHardwareMonitor
+  (`lhm-client`), usado só quando a zona térmica ACPI não devolve nada. Mantém
+  um runtime tokio próprio, limite de tempo por requisição e reconexão periódica.
 - `serial.rs`: enumeração e validação da porta, configuração serial compatível
   com o executável original, rasterização PNG/RGB565 e transmissão de quadros.
 - `config.rs`: validação e persistência de preferências JSON no diretório de
@@ -64,7 +67,8 @@ com os métodos recuperados, não como prova isolada do protocolo.
   CPU, RAM, GPU, CPU TEMP, GPU TEMP, rede e uptime
   no menu/tooltip da bandeja, a cada cinco segundos. A ação “Liberar porta
   serial” desconecta uma porta aberta por esta instância mesmo com a janela
-  oculta.
+  oculta, e “Instalar suporte de temperatura da CPU…” abre o `lhm-service.msi`
+  que acompanha o aplicativo (veja a seção sobre o instalador).
 - Catppuccin Latte, Frappé, Macchiato e Mocha, mais a paleta própria Console
   (verde fósforo, definida no tema `console`), são paletas persistidas. Para
   adicionar um layout HTML, crie `<id>.html` em `frontend\displays` e inclua o
@@ -74,6 +78,47 @@ com os métodos recuperados, não como prova isolada do protocolo.
   captura para o display físico, `app.js` reescreve as URLs de fonte locais como
   data URI (para o `@font-face` resolver dentro do `foreignObject` do SVG) e
   desativa transições antes de ler os estilos, senão os medidores saem vazios.
+  O botão de transmissão tem largura fixa (158 px) em todos os estados, com o
+  ícone (play, stop, fechar, sincronizar) sempre visível; rótulo e ícone trocam
+  sem redimensionar o cartão. Os rodapés dos quatro layouts antigos usam o
+  formato literal `CPU: XX°C`, rede com uma casa decimal (`↑12.3M`) e valores
+  encurtados de uptime (`3d12h`) e VRAM (`10/24G`), sem reticências.
+
+## Serviço de temperatura embutido no instalador
+
+O `lhm-service.msi` (release `0.0.0`, licença MIT) é versionado em
+`src-tauri\lhm\` e copiado para a pasta de instalação pelo `bundle.resources` do
+`tauri.conf.json`, junto com o aviso de terceiros (`THIRD-PARTY-NOTICES.md`, que
+traz também o texto da MPL-2.0 da LibreHardwareMonitorLib embutida no serviço).
+Assim não é preciso baixar nada depois de instalar.
+
+Quem instala o serviço é o instalador **NSIS**, pelo hook
+`src-tauri\nsis\hooks.nsh` (`NSIS_HOOK_POSTINSTALL`): o NSIS não é uma sessão do
+Windows Installer, então pode executar o outro MSI. Como o instalador do Tauri é
+por usuário (`installMode` padrão, `RequestExecutionLevel user`) e o serviço é
+instalado para todos, o hook usa `ExecShell "runas" ... /qb`, que pede elevação
+na hora; recusar não desfaz a instalação do aplicativo.
+
+O instalador NSIS é o único gerado (`bundle.targets` no `tauri.conf.json`).
+Antes saía também um MSI, e o encadeamento **não** funciona nele — isso foi
+medido, não suposto: um custom action diferido (`Directory="INSTALLDIR"`,
+`Impersonate="no"`) que executa `msiexec /i child.msi /qn` devolve **1618**
+(`ERROR_INSTALL_ALREADY_RUNNING`) e o MSI filho não é instalado, porque o Windows
+Installer mantém o mutex `_MSIExecute` durante toda a sequência de execução. O
+mesmo teste confirmou que `[INSTALLDIR]` **é** expandido em ação diferida; a
+limitação é só a instalação aninhada. Como o MSI deixava o serviço dependente de
+um clique manual, a entrega ficou só com o NSIS.
+
+A opção “Instalar suporte de temperatura da CPU…”, na bandeja, é o caminho de
+conserto: abre o MSI que está ao lado do executável através do shell
+(`cmd /c start ...`), o que faz o Windows pedir elevação como se fosse um duplo
+clique. Serve quando a elevação foi recusada no setup ou quando o serviço foi
+removido depois.
+
+Desinstalar o UsbMonitor não remove o serviço: ele é um produto independente,
+pode ter sido instalado antes pelo usuário e tem entrada própria em “Aplicativos
+e recursos”. Os dois instaladores apagam apenas os arquivos que copiaram para a
+pasta de instalação.
 
 ## Limites ainda abertos
 
@@ -82,9 +127,18 @@ com os métodos recuperados, não como prova isolada do protocolo.
   perfil paisagem 480 × 320 do layout atual.
 - A GPU é consultada por NVML NVIDIA, então o app é compatível apenas com
   placas NVIDIA; métricas de GPU AMD/Intel aparecem como N/D. A temperatura da
-  CPU passa a ser lida da zona térmica ACPI via WMI (`MSAcpi_ThermalZoneTemperature`,
-  exposta por `sysinfo::Components`), com fallback `CPU: N/D` quando a placa não
-  publica zona utilizável. A previsão é de fonte
+  CPU é lida da zona térmica ACPI via WMI (`MSAcpi_ThermalZoneTemperature`,
+  exposta por `sysinfo::Components`). Em placas que não publicam uma zona
+  utilizável — confirmado nesta máquina (Ryzen 7 5700X/AM4: o namespace
+  `MSAcpi_ThermalZoneTemperature` responde "não há suporte à operação") — a
+  leitura passa a vir do **serviço** do LibreHardwareMonitor
+  (`lhm-service`, cliente `lhm-client 0.0.0`, pipe
+  `\\.\pipe\LHMLibreHardwareMonitorService`), que é quem carrega o driver de
+  kernel; assim o app segue sem exigir administrador. Sem o serviço instalado o
+  valor fica `CPU: N/D`. A versão 0.0.0 do cliente é deliberada: o único
+  instalador publicado pelo projeto (release `0.0.0`) fala o protocolo
+  `Update`/`GetHardware`; a partir de `0.1.0` o serviço passou a usar
+  `UpdateAll`/`QueryHardware` e deixou de ser compatível. A previsão é de fonte
   pública Open-Meteo; a cidade configurada é enviada para geocodificação e
   previsão, mas nenhuma telemetria do PC é transmitida.
 - O gráfico mantém amostras em memória por até uma hora e mostra no máximo os
@@ -95,7 +149,17 @@ com os métodos recuperados, não como prova isolada do protocolo.
 ## Verificação
 
 Executar `cargo fmt --check`, `cargo test`, Clippy e `node --check
-frontend\app.js`. Os testes cobrem validação de configuração, identidade USB,
-cabeçalho de quadro, orientação, conversão RGB565 e validação da imagem PNG,
-além de cálculo de taxa de rede e escape CSV. O build/execução do app Tauri
-requer o toolchain Windows e WebView2 Runtime.
+frontend\app.js`; para os layouts, `node --check frontend\displays\runtime.js`.
+Os testes cobrem validação de configuração, identidade USB, cabeçalho de quadro,
+orientação, conversão RGB565, validação da imagem PNG, cálculo de taxa de rede,
+escape CSV e a escolha da temperatura da CPU entre os sensores do
+LibreHardwareMonitor (maior leitura válida, ignorando `Distance to TjMax`,
+`NaN`/zero e sensores de hardware alheio, como a GPU). A integração com o serviço
+foi validada de ponta a ponta contra um named pipe falso que responde com o
+protocolo publicado (`SetOptions`, `Update`, `GetHardware`), sem instalar o
+serviço. Nos instaladores gerados foram conferidas as tabelas `File`,
+`Component` e `Directory` do MSI pelo objeto COM `WindowsInstaller.Installer`
+(`lhm-service.msi`, 2.641.920 bytes, e `THIRD-PARTY-NOTICES.md` ficam em
+`INSTALLDIR`) e o script NSIS compilado (`File /oname=...` em `$INSTDIR` e o
+hook `NSIS_HOOK_POSTINSTALL` inserido ao fim da seção de instalação). O build e a
+execução do app Tauri requerem o toolchain Windows e o WebView2 Runtime.
