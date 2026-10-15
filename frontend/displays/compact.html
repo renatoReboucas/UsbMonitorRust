@@ -7,6 +7,7 @@
     <meta name="theme-color" content="#0c0f17">
     <link rel="stylesheet" href="./display-base.css">
     <link rel="stylesheet" href="./compact.css">
+    <script src="../icons.js" defer></script>
     <script src="./runtime.js" defer></script>
     <title>Layout Compacto · 3.5"</title>
   </head>
@@ -20,7 +21,7 @@
         </div>
 
         <div class="weather">
-          <span id="weather-icon" class="weather-icon" aria-hidden="true">☁</span>
+          <span id="weather-icon" class="weather-icon" data-lucide="cloud" aria-hidden="true"></span>
           <b id="weather-temperature" class="weather-temp">—°C</b>
           <span class="weather-sep" aria-hidden="true">·</span>
           <span id="weather-city" class="weather-city">São Paulo</span>
@@ -74,8 +75,8 @@
         </div>
         <div class="footer-item">
           <div class="footer-net">
-            <span id="upload" class="net-upload">↑ —</span>
-            <span id="download" class="net-down">↓ —</span>
+            <span id="upload" class="net-upload">—</span>
+            <span id="download" class="net-down">—</span>
           </div>
         </div>
         <div class="footer-item">

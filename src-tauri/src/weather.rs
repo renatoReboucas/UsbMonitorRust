@@ -258,20 +258,23 @@ fn select_place<'a>(
         })
 }
 
+/// Traduz o código do Open-Meteo em um rótulo e no **nome do ícone Lucide** que
+/// a interface usa. O nome (e não um glifo) mantém o ícone vetorial e coerente
+/// entre o app desktop e os layouts do display; ver `frontend/icons.js`.
 fn weather_description(code: u8) -> (&'static str, &'static str) {
     match code {
-        0 => ("CÉU LIMPO", "☀"),
-        1 => ("POUCO NUBLADO", "🌤"),
-        2 => ("PARCIALMENTE NUBLADO", "⛅"),
-        3 => ("NUBLADO", "☁"),
-        45 | 48 => ("NEBLINA", "🌫"),
-        51 | 53 | 55 | 56 | 57 => ("GAROA", "🌦"),
-        61 | 63 | 65 | 66 | 67 => ("CHUVA", "🌧"),
-        71 | 73 | 75 | 77 => ("NEVE", "❄"),
-        80..=82 => ("PANCADAS", "🌧"),
-        85 | 86 => ("NEVE", "❄"),
-        95 | 96 | 99 => ("TEMPORAL", "⛈"),
-        _ => ("CONDIÇÃO ATUAL", "☁"),
+        0 => ("CÉU LIMPO", "sun"),
+        1 => ("POUCO NUBLADO", "cloud-sun"),
+        2 => ("PARCIALMENTE NUBLADO", "cloud-sun"),
+        3 => ("NUBLADO", "cloud"),
+        45 | 48 => ("NEBLINA", "cloud-fog"),
+        51 | 53 | 55 | 56 | 57 => ("GAROA", "cloud-drizzle"),
+        61 | 63 | 65 | 66 | 67 => ("CHUVA", "cloud-rain"),
+        71 | 73 | 75 | 77 => ("NEVE", "snowflake"),
+        80..=82 => ("PANCADAS", "cloud-rain"),
+        85 | 86 => ("NEVE", "snowflake"),
+        95 | 96 | 99 => ("TEMPORAL", "cloud-lightning"),
+        _ => ("CONDIÇÃO ATUAL", "cloud"),
     }
 }
 
@@ -280,10 +283,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn maps_open_meteo_weather_codes_to_portuguese_labels() {
-        assert_eq!(weather_description(45), ("NEBLINA", "🌫"));
-        assert_eq!(weather_description(61), ("CHUVA", "🌧"));
-        assert_eq!(weather_description(0), ("CÉU LIMPO", "☀"));
+    fn maps_open_meteo_weather_codes_to_labels_and_lucide_icons() {
+        assert_eq!(weather_description(45), ("NEBLINA", "cloud-fog"));
+        assert_eq!(weather_description(61), ("CHUVA", "cloud-rain"));
+        assert_eq!(weather_description(0), ("CÉU LIMPO", "sun"));
     }
 
     #[test]

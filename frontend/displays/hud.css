@@ -48,6 +48,8 @@ body {
 }
 
 .display-brand .brand-mark {
+  display: inline-flex;
+  align-items: center;
   color: var(--accent);
   font-size: 13px;
   flex: 0 0 auto;

@@ -48,6 +48,8 @@ body {
 }
 
 .device-chip .device-icon {
+  display: inline-flex;
+  align-items: center;
   color: var(--warm);
   font-size: 13px;
   line-height: 1;

@@ -1,3 +1,21 @@
+/* Fontes locais — o aplicativo roda offline (WebView2), então nada é buscado
+   na rede nem depende do sistema do usuário. Licenças em
+   THIRD-PARTY-NOTICES.md. */
+@font-face {
+  font-family: "VT323";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./fonts/vt323.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Press Start 2P";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./fonts/press-start-2p.woff2") format("woff2");
+}
+
 :root {
   color-scheme: dark;
   --bg: #101116;
@@ -12,7 +30,12 @@
   --green: #a6e3a1;
   --red: #f38ba8;
   --screen-base: #1e1e2e;
-  font-family: "Segoe UI Variable", "Segoe UI", Inter, system-ui, sans-serif;
+  /* Tipografia: corpo legível, micro-rótulos em fonte de arcade e números e
+     títulos em fonte de terminal. Ver a "camada retrô" no fim do arquivo. */
+  --font-sans: "Segoe UI Variable", "Segoe UI", Inter, system-ui, sans-serif;
+  --font-pixel: "Press Start 2P", "VT323", monospace;
+  --font-terminal: "VT323", "Consolas", ui-monospace, monospace;
+  font-family: var(--font-sans);
   font-synthesis: none;
   color: var(--text);
   background: var(--bg);
@@ -385,6 +408,125 @@ footer span { padding: 0 4px; color: var(--border); }
 [data-palette="latte"] .theme-card { color: var(--text); }
 
 [data-palette="console"] { color-scheme: dark; }
+[data-palette="retro"] { color-scheme: dark; }
+
+/* ---------------------------------------------------------------------------
+ * Camada retrô.
+ *
+ * O arranjo continua o de um painel moderno (sidebar, cartões, grade densa),
+ * mas a "pele" vira pixel art: tipos de bitmap, cantos quase retos e sombras
+ * sólidas deslocadas, em vez de desfoques. Fica antes das consultas de mídia de
+ * propósito: lá os tamanhos de fonte continuam mandando nas telas pequenas.
+ * ------------------------------------------------------------------------ */
+
+/* O SVG do Lucide não traz largura/altura próprias; o tamanho sai do texto do
+   elemento que o hospeda. Os seletores contextuais existentes (`.nav-item svg`,
+   `.primary svg`, …) têm especificidade maior e continuam vencendo. */
+.icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  vertical-align: -0.125em;
+}
+
+/* Press Start 2P nos micro-rótulos (caixa alta e curtos, que é onde a fonte
+   de arcade brilha). VT323 nos números e títulos grandes. */
+.brand b,
+.brand small,
+.nav-label,
+.topbar-kicker,
+.heading label,
+.section-heading label,
+.display-preview-heading label,
+.history-heading label,
+.device-info label,
+.settings-title label,
+.field > span:first-child,
+.custom-info legend,
+.serial-mode > span,
+.live-metric-icon,
+.live-metric-heading b,
+.live-metric-foot,
+.live-pill,
+.tag,
+.badge,
+.version {
+  font-family: var(--font-pixel);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+.brand b { font-size: 11px; }
+.brand small { font-size: 7px; }
+.nav-label,
+.topbar-kicker,
+.heading label,
+.section-heading label,
+.display-preview-heading label,
+.history-heading label,
+.device-info label,
+.settings-title label,
+.field > span:first-child,
+.custom-info legend,
+.serial-mode > span,
+.live-metric-icon,
+.live-metric-heading b { font-size: 8px; }
+.live-metric-foot { font-size: 7px; }
+.live-pill { font-size: 7px; }
+.tag { font-size: 8px; }
+.badge { font-size: 7px; }
+.version { font-size: 7px; }
+
+.heading h1,
+.display-preview-heading h2,
+.history-heading h2,
+.section-heading h2,
+.device h2,
+.settings h2,
+.page-intro b,
+.template-help b {
+  font-family: var(--font-terminal);
+}
+.heading h1 { font-size: clamp(31px, 3.4vw, 40px); letter-spacing: 0; }
+.display-preview-heading h2,
+.history-heading h2,
+.section-heading h2,
+.settings h2 { font-size: 18px; }
+.device h2 { font-size: 17px; }
+.live-metric-value strong { font-family: var(--font-terminal); font-size: clamp(29px, 2.6vw, 38px); letter-spacing: 0; }
+
+/* Molduras de 8 bits. */
+.panel,
+.device,
+.quick,
+.theme-card,
+.page-intro,
+.custom-info,
+.live-metric-card,
+.connection,
+.screen,
+.notice,
+.tag,
+.live,
+.live-pill,
+.field select,
+.field input:not([type="range"]):not([type="color"]),
+.color input {
+  border-radius: 3px;
+}
+
+.primary,
+.secondary,
+.subtle,
+.topbar button {
+  border-radius: 3px;
+}
+
+.primary { box-shadow: 3px 3px 0 color-mix(in srgb, var(--accent) 26%, #000); }
+.primary:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 color-mix(in srgb, var(--accent) 26%, #000); }
+.panel { box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.22); }
+.screen { box-shadow: 0 0 0 3px color-mix(in srgb, var(--surface) 70%, #000), 6px 6px 0 rgba(0, 0, 0, 0.28); }
 
 @media (min-width: 1500px) {
   main { padding-right: 54px; padding-left: 54px; }

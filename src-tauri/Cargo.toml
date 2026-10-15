@@ -1,6 +1,6 @@
 [package]
 name = "usb-monitor-rust"
-version = "0.2.0"
+version = "1.2.0"
 description = "Monitor de sistema com interface Tauri para Windows"
 edition = "2021"
 

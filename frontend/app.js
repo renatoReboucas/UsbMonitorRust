@@ -34,12 +34,18 @@ const palettes = {
     text: "#e8ece9", subtext0: "#7f8b83", mauve: "#4ade80", green: "#4ade80",
     pink: "#c084fc", blue: "#3b82f6", peach: "#fbbf24", red: "#f97316",
   },
+  retro: {
+    label: "Retro",
+    base: "#0b0f0d", mantle: "#101613", crust: "#0d1210", surface0: "#1d2b22",
+    text: "#d7f5df", subtext0: "#7fae8e", mauve: "#5ef08a", green: "#5ef08a",
+    pink: "#ffd166", blue: "#59d0ff", peach: "#ffb454", red: "#ff6b6b",
+  },
 };
 const $ = (selector) => document.querySelector(selector);
 const historySamples = [];
 const metricNames = { cpu: "", gpu: "" };
 const defaults = {
-  displayTemplate: "reference",
+  displayTemplate: "console",
   brightness: 80,
   rotation: 0,
   mirror: false,
@@ -231,12 +237,22 @@ const connectButtonLabels = {
 };
 
 // O ícone existe em todos os estados para o botão nunca mudar de largura.
+// Os nomes são do Lucide e o SVG vem de `icons.js`.
 const connectButtonIcons = {
-  sending: '<path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.8-2L20 12M4 12l2.6 5a7 7 0 0 0 11.8-2"/>',
-  transmitting: '<rect x="6.5" y="6.5" width="11" height="11" rx="1.5"/>',
-  open: '<path d="M6 6l12 12M18 6 6 18"/>',
-  idle: '<path d="m8 5 11 7-11 7z"/>',
+  sending: "refresh-cw",
+  transmitting: "square",
+  open: "x",
+  idle: "play",
 };
+
+// Troca o ícone Lucide de um botão que tem um `<span class="icon-slot">`.
+function setButtonIcon(button, name) {
+  const slot = button?.querySelector("[data-lucide]");
+  if (!slot) return;
+  slot.dataset.lucide = name;
+  // `setIcon` vem de `icons.js`; sem ele o botão fica só com o rótulo.
+  if (typeof setIcon === "function") setIcon(slot, name);
+}
 
 function updateStatus(data) {
   currentDeviceStatus = data;
@@ -266,7 +282,7 @@ function updateStatus(data) {
         ? "open"
         : "idle";
   connectButton.querySelector(".button-label").textContent = connectButtonLabels[connectState];
-  connectButton.querySelector("svg").innerHTML = connectButtonIcons[connectState];
+  setButtonIcon(connectButton, connectButtonIcons[connectState]);
   $("#send-now").disabled = frameSendRunning || !data.port_open;
   const select = $("#port-select");
   select.replaceChildren(new Option(data.port || "Dispositivo não encontrado", data.port || ""));
@@ -325,7 +341,7 @@ function updateMetrics(metrics) {
 
   const gpuTemperature = metrics.gpu_temperature_c === null ? "N/D" : `${metrics.gpu_temperature_c}°C`;
   $("#home-gpu-temperature").textContent = gpuTemperature;
-  $("#home-gpu-name").textContent = metricNames.gpu || "GPU NVIDIA indisponível";
+  $("#home-gpu-name").textContent = metricNames.gpu || "GPU indisponível";
   $("#home-vram-total").textContent = metrics.vram_used_bytes !== null && metrics.vram_total_bytes
     ? `VRAM: ${formatGb(metrics.vram_used_bytes)} / ${formatGb(metrics.vram_total_bytes)} GB`
     : "VRAM: indisponível";
@@ -395,10 +411,8 @@ function setChartPaused(paused) {
   const button = $("#chart-toggle");
   button.setAttribute("aria-pressed", String(paused));
   button.setAttribute("aria-label", paused ? "Retomar atualização do gráfico" : "Pausar atualização do gráfico");
-  button.querySelector("span").textContent = paused ? "Retomar" : "Pausar";
-  button.querySelector("svg").innerHTML = paused
-    ? '<path d="m8 5 11 7-11 7z"/>'
-    : '<path d="M9 5v14m6-14v14"/>';
+  button.querySelector("span:not([data-lucide])").textContent = paused ? "Retomar" : "Pausar";
+  setButtonIcon(button, paused ? "play" : "pause");
   $(".chart-live-tag").classList.toggle("is-paused", paused);
   updateMetricsFreshness();
   $("#history-range").textContent = paused
@@ -424,7 +438,7 @@ function drawHistory() {
   const width = bounds.width;
   const height = bounds.height;
   context.clearRect(0, 0, width, height);
-  context.font = "10px Segoe UI, sans-serif";
+  context.font = "14px 'VT323', Consolas, monospace";
   const styles = getComputedStyle(document.documentElement);
   context.fillStyle = styles.getPropertyValue("--muted").trim();
   context.strokeStyle = styles.getPropertyValue("--border").trim();
@@ -436,6 +450,37 @@ function drawHistory() {
     context.lineTo(width, y);
     context.stroke();
     context.fillText(`${level}%`, 0, y + 3);
+  }
+  // Faixa (área) sob a CPU: dá o aspecto de "streaming" ao gráfico. As três
+  // séries continuam distinguíveis por cor e por estilo de linha, então a área
+  // não é a única pista visual.
+  {
+    const color = styles.getPropertyValue("--metric-cpu").trim();
+    context.save();
+    context.fillStyle = color;
+    context.globalAlpha = 0.16;
+    context.beginPath();
+    let started = false;
+    let lastX = 0;
+    historySamples.forEach((sample, index) => {
+      if (sample.cpu === null) return;
+      const x = historySamples.length < 2 ? 32 : 32 + (width - 32) * index / (historySamples.length - 1);
+      const y = height - 18 - (height - 28) * Math.max(0, Math.min(100, sample.cpu)) / 100;
+      if (!started) {
+        context.moveTo(x, height - 18);
+        context.lineTo(x, y);
+        started = true;
+      } else {
+        context.lineTo(x, y);
+      }
+      lastX = x;
+    });
+    if (started) {
+      context.lineTo(lastX, height - 18);
+      context.closePath();
+      context.fill();
+    }
+    context.restore();
   }
   for (const [key, color, dash] of [
     ["cpu", styles.getPropertyValue("--metric-cpu").trim(), []],

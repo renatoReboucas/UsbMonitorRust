@@ -11,9 +11,10 @@ use sysinfo::{Components, Networks, System};
 use tauri::{AppHandle, Manager};
 
 use crate::{
+    amd::AmdTelemetry,
     cpu,
     gpu::NvidiaTelemetry,
-    lhm::HardwareMonitor,
+    lhm::{GpuReading, HardwareMonitor},
     ram,
     tray::{self, TrayState},
 };
@@ -113,8 +114,24 @@ fn collect_loop(state: TelemetryState, app: AppHandle, tray_state: TrayState) {
             None
         }
     };
-    let mut hardware_monitor = HardwareMonitor::load();
+    // Sem NVML, a ADL é a via nativa para Radeon; o LibreHardwareMonitor cobre
+    // o que sobrar (inclusive Intel).
+    let amd = if nvml.is_none() {
+        match AmdTelemetry::load() {
+            Ok(amd) => Some(amd),
+            Err(error) => {
+                eprintln!("Telemetria AMD indisponível: {error}");
+                None
+            }
+        }
+    } else {
+        None
+    };
+    // A GPU pelo serviço só é pedida quando não há fonte nativa, mas a conexão
+    // continua valendo para a temperatura da CPU.
+    let mut hardware_monitor = HardwareMonitor::load(nvml.is_none());
     let mut last_hardware_monitor_retry = Instant::now();
+    let mut gpu_from_service: Option<GpuReading> = None;
 
     loop {
         thread::sleep(SAMPLE_INTERVAL);
@@ -128,8 +145,11 @@ fn collect_loop(state: TelemetryState, app: AppHandle, tray_state: TrayState) {
             components.refresh(true);
             cpu_temperature_c = cpu::temperature_celsius(&components);
             // Boards without an ACPI thermal zone (typical AM4/Ryzen desktops)
-            // only report a temperature through the LibreHardwareMonitor service.
-            if cpu_temperature_c.is_none() {
+            // only report a temperature through the LibreHardwareMonitor
+            // service. The same service is also the GPU fallback when neither
+            // NVML nor ADL answered.
+            let needs_gpu = nvml.is_none();
+            if (cpu_temperature_c.is_none() || needs_gpu) && hardware_monitor.is_some() {
                 if let Some(monitor) = hardware_monitor.as_mut() {
                     if !monitor.is_ready()
                         && last_hardware_monitor_retry.elapsed() >= HARDWARE_MONITOR_RETRY
@@ -137,7 +157,18 @@ fn collect_loop(state: TelemetryState, app: AppHandle, tray_state: TrayState) {
                         last_hardware_monitor_retry = Instant::now();
                         monitor.reconnect();
                     }
-                    cpu_temperature_c = monitor.cpu_temperature_celsius();
+                    if let Some(readings) = monitor.read() {
+                        if cpu_temperature_c.is_none() {
+                            cpu_temperature_c = readings.cpu_temperature_c;
+                        }
+                        if needs_gpu {
+                            gpu_from_service = readings.gpu;
+                        }
+                    } else if needs_gpu {
+                        // O serviço caiu ou parou de responder: não mantém uma
+                        // leitura antiga na tela.
+                        gpu_from_service = None;
+                    }
                 }
             }
         }
@@ -165,8 +196,16 @@ fn collect_loop(state: TelemetryState, app: AppHandle, tray_state: TrayState) {
             ..SystemMetrics::default()
         };
         previous_network = (received, transmitted);
+        // Precedência por campo: NVML (NVIDIA) → ADL (AMD) → serviço LHM.
         if let Some(nvml) = &nvml {
             nvml.collect(&mut snapshot);
+        } else {
+            if let Some(amd) = &amd {
+                amd.collect(&mut snapshot);
+            }
+            if let Some(gpu) = &gpu_from_service {
+                fill_gpu_from_service(&mut snapshot, gpu);
+            }
         }
         state.record(snapshot.clone());
         if last_tray_update.elapsed() >= Duration::from_secs(5) {
@@ -189,6 +228,26 @@ fn network_totals(networks: &Networks) -> (u64, u64) {
 
 fn rate(current: u64, previous: u64, elapsed_seconds: f64) -> u64 {
     (current.saturating_sub(previous) as f64 / elapsed_seconds.max(0.001)) as u64
+}
+
+/// Completa com a leitura do serviço apenas os campos de GPU que as fontes
+/// nativas não preencheram.
+fn fill_gpu_from_service(metrics: &mut SystemMetrics, gpu: &GpuReading) {
+    if metrics.gpu_name.is_none() {
+        metrics.gpu_name = gpu.name.clone();
+    }
+    if metrics.gpu_usage_percent.is_none() {
+        metrics.gpu_usage_percent = gpu.usage_percent;
+    }
+    if metrics.gpu_temperature_c.is_none() {
+        metrics.gpu_temperature_c = gpu.temperature_c;
+    }
+    if metrics.vram_used_bytes.is_none() {
+        metrics.vram_used_bytes = gpu.vram_used_bytes;
+    }
+    if metrics.vram_total_bytes.is_none() {
+        metrics.vram_total_bytes = gpu.vram_total_bytes;
+    }
 }
 
 pub fn export_logs(app: &AppHandle, state: &TelemetryState) -> Result<String, String> {
@@ -260,5 +319,27 @@ mod tests {
     fn csv_text_quotes_values_and_escapes_quotes() {
         assert_eq!(csv_text(Some("GPU \"A\"")), "\"GPU \"\"A\"\"\"");
         assert_eq!(csv_text(None), "\"\"");
+    }
+
+    #[test]
+    fn service_gpu_readings_only_fill_missing_fields() {
+        let mut metrics = SystemMetrics {
+            gpu_name: Some("Radeon RX 6800".to_owned()),
+            gpu_usage_percent: Some(10),
+            ..SystemMetrics::default()
+        };
+        let gpu = GpuReading {
+            name: Some("nome ignorado".to_owned()),
+            usage_percent: Some(99),
+            temperature_c: Some(60),
+            vram_used_bytes: Some(1024),
+            vram_total_bytes: Some(4096),
+        };
+        fill_gpu_from_service(&mut metrics, &gpu);
+        assert_eq!(metrics.gpu_name.as_deref(), Some("Radeon RX 6800"));
+        assert_eq!(metrics.gpu_usage_percent, Some(10));
+        assert_eq!(metrics.gpu_temperature_c, Some(60));
+        assert_eq!(metrics.vram_used_bytes, Some(1024));
+        assert_eq!(metrics.vram_total_bytes, Some(4096));
     }
 }

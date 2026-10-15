@@ -125,8 +125,14 @@ pasta de instalação.
 - O protocolo foi confirmado pela descompilação estática do programa original,
   mas ainda falta validar um quadro no hardware físico. A transmissão usa o
   perfil paisagem 480 × 320 do layout atual.
-- A GPU é consultada por NVML NVIDIA, então o app é compatível apenas com
-  placas NVIDIA; métricas de GPU AMD/Intel aparecem como N/D. A temperatura da
+- A GPU é consultada por três fontes, na ordem NVML (NVIDIA) → ADL (AMD) →
+  serviço do LibreHardwareMonitor (qualquer marca), e cada campo é preenchido
+  pela primeira fonte que responder; o que ninguém informar aparece como N/D. A
+  via NVML usa `nvml.dll`; a via AMD carrega `atiadlxx.dll` do `System32` e lê
+  temperatura, uso e VRAM pela ADL (OverdriveN/Overdrive5 e `MemoryInfoX4`).
+  Como não há hardware AMD de teste aqui, o caminho ADL foi escrito a partir do
+  cabeçalho público e conta com o serviço do LibreHardwareMonitor como rede de
+  segurança. A temperatura da
   CPU é lida da zona térmica ACPI via WMI (`MSAcpi_ThermalZoneTemperature`,
   exposta por `sysinfo::Components`). Em placas que não publicam uma zona
   utilizável — confirmado nesta máquina (Ryzen 7 5700X/AM4: o namespace

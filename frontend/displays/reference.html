@@ -7,6 +7,7 @@
     <meta name="theme-color" content="#071329">
     <link rel="stylesheet" href="./display-base.css">
     <link rel="stylesheet" href="./reference.css">
+    <script src="../icons.js" defer></script>
     <script src="./runtime.js" defer></script>
     <title>Layout de Referência · 3.5"</title>
   </head>
@@ -15,7 +16,7 @@
       <!-- Coluna esquerda: sistema, relógio e clima -->
       <section class="overview" aria-label="Relógio, sistema e clima">
         <header class="device-chip">
-          <span class="device-icon" aria-hidden="true">▣</span>
+          <span class="device-icon" data-lucide="monitor" aria-hidden="true"></span>
           <b id="computer">Este computador</b>
           <small id="os">Windows</small>
         </header>
@@ -27,12 +28,12 @@
 
         <section class="weather-box" aria-label="Clima atual">
           <div class="weather">
-            <span id="weather-icon" class="weather-icon" aria-hidden="true">☁</span>
+            <span id="weather-icon" class="weather-icon" data-lucide="cloud" aria-hidden="true"></span>
             <b id="weather-temperature" class="weather-temp">—°C</b>
             <span id="weather-city" class="weather-city">São Paulo</span>
           </div>
           <div class="weather-meta">
-            <span id="weather-humidity">◉ —%</span>
+            <span id="weather-humidity">—%</span>
             <small id="weather-description">CLIMA</small>
           </div>
         </section>
@@ -85,8 +86,8 @@
         </div>
         <div class="footer-item">
           <div class="footer-net">
-            <b id="upload" class="net-upload">↑ —</b>
-            <b id="download" class="net-down">↓ —</b>
+            <b id="upload" class="net-upload">—</b>
+            <b id="download" class="net-down">—</b>
           </div>
         </div>
         <div class="footer-item">

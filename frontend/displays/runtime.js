@@ -60,11 +60,39 @@ const paletteColors = {
     gpu: "#3b82f6",
     warm: "#fbbf24",
   },
+  retro: {
+    base: "#0b0f0d",
+    surface: "#101613",
+    border: "#24402f",
+    text: "#d7f5df",
+    muted: "#7fae8e",
+    accent: "#5ef08a",
+    cpu: "#5ef08a",
+    ram: "#ffd166",
+    gpu: "#59d0ff",
+    warm: "#ffb454",
+  },
 };
 
 function setText(id, value, fallback = "N/D") {
   const element = byId(id);
   if (element) element.textContent = value ?? fallback;
+}
+
+// `setIcon`/`iconMarkup` vêm de `icons.js`, carregado antes deste script. Se por
+// algum motivo ele não estiver disponível, o render continua funcionando: o
+// valor sai sem ícone em vez de quebrar toda a atualização.
+const applyIcon = (element, name) => {
+  if (element && typeof setIcon === "function") setIcon(element, name);
+};
+
+// Escreve um ícone Lucide seguido do valor no mesmo elemento (o ícone vem de
+// `icons.js`). Substitui o antigo glifo de texto, como "↑" ou "◉".
+function setIconValue(id, icon, value, fallback = "N/D") {
+  const element = byId(id);
+  if (!element) return;
+  applyIcon(element, icon);
+  element.append(document.createTextNode(value ?? fallback));
 }
 
 function percentage(value) {
@@ -114,13 +142,21 @@ function render({ metrics = {}, weather = null, settings = {}, clock = {}, palet
   const rawCity = weather?.city || settings.city || "São Paulo";
   const cleanCity = rawCity.split(",")[0].trim();
   setText("weather-city", cleanCity);
-  setText("weather-icon", weather?.icon, "☁");
+  applyIcon(byId("weather-icon"), weather?.icon || "cloud");
   setText("weather-temperature", weather ? `${Math.round(weather.temperatureC)}°C` : "—°C");
   setText("weather-description", weather?.description, "CLIMA");
-  setText("weather-high", weather ? `↑ ${Math.round(weather.highC)}°` : "↑ —°");
-  setText("weather-low", weather ? `↓ ${Math.round(weather.lowC)}°` : "↓ —°");
-  setText("weather-humidity", weather ? `◉ ${weather.humidityPercent}%` : "◉ —%");
-  setText("weather-humidity-value", weather ? `${weather.humidityPercent}%` : "—%");
+  setIconValue("weather-high", "arrow-up", weather ? `${Math.round(weather.highC)}°` : "—°");
+  setIconValue("weather-low", "arrow-down", weather ? `${Math.round(weather.lowC)}°` : "—°");
+  setIconValue(
+    "weather-humidity",
+    "droplet",
+    weather ? `${weather.humidityPercent}%` : "—%",
+  );
+  setIconValue(
+    "weather-humidity-value",
+    "droplet",
+    weather ? `${weather.humidityPercent}%` : "—%",
+  );
 
   setText("cpu-usage", percentage(cpu));
   setText("cpu-frequency", frequency);
@@ -153,8 +189,8 @@ function render({ metrics = {}, weather = null, settings = {}, clock = {}, palet
 
   const upSpeed = formatNet(metrics.upload_bytes_per_sec);
   const downSpeed = formatNet(metrics.download_bytes_per_sec);
-  setText("upload", `↑${upSpeed}`);
-  setText("download", `↓${downSpeed}`);
+  setIconValue("upload", "arrow-up", upSpeed);
+  setIconValue("download", "arrow-down", downSpeed);
   setText("vram", metrics.vram_used_bytes != null && metrics.vram_total_bytes
     ? `${(metrics.vram_used_bytes / (1024 ** 3)).toFixed(1)}/${(metrics.vram_total_bytes / (1024 ** 3)).toFixed(0)}G`
     : "N/D");

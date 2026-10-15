@@ -292,6 +292,21 @@ body {
 .net-upload { color: var(--net-up); }
 .net-down { color: var(--net-down); }
 
+/* Ícones Lucide -------------------------------------------------------------
+ * O SVG vem de `icons.js` (sem largura/altura próprias), então o tamanho é
+ * sempre relativo ao texto do elemento que o hospeda. */
+.icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  vertical-align: -0.12em;
+}
+
+.footer-net .icon {
+  margin-right: 2px;
+}
+
 .footer-temperature {
   color: var(--warm);
 }

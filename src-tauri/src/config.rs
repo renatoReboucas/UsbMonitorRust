@@ -25,7 +25,7 @@ pub struct AppConfig {
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
-            display_template: "reference".to_owned(),
+            display_template: "console".to_owned(),
             palette: "mocha".to_owned(),
             brightness: 80,
             rotation: 0,
@@ -45,7 +45,9 @@ impl Default for AppConfig {
 
 impl AppConfig {
     pub fn validate(mut self) -> Result<Self, String> {
-        const PALETTES: [&str; 4] = ["latte", "frappe", "macchiato", "mocha"];
+        // Paletas do Catppuccin mais as duas do display (Console/verde e Retro).
+        // Sem todas na lista, salvar uma delas seria recusado.
+        const PALETTES: [&str; 6] = ["latte", "frappe", "macchiato", "mocha", "console", "retro"];
         if self.refresh_interval_secs == 0 || self.refresh_interval_secs > 3600 {
             self.refresh_interval_secs = 5;
         }
@@ -209,8 +211,19 @@ mod tests {
     }
 
     #[test]
-    fn legacy_theme_settings_fall_back_to_the_reference_template() {
+    fn legacy_theme_settings_fall_back_to_the_default_template() {
         let config: AppConfig = serde_json::from_str(r#"{"theme":"3.5inchTheme1"}"#).unwrap();
-        assert_eq!(config.display_template, "reference");
+        assert_eq!(config.display_template, "console");
+    }
+
+    #[test]
+    fn accepts_every_palette_shipped_with_the_ui() {
+        for palette in ["latte", "frappe", "macchiato", "mocha", "console", "retro"] {
+            let config = AppConfig {
+                palette: palette.to_owned(),
+                ..AppConfig::default()
+            };
+            assert!(config.validate().is_ok(), "paleta recusada: {palette}");
+        }
     }
 }
