@@ -307,16 +307,6 @@ main { max-width: 1660px; min-height: 100vh; margin-left: 248px; padding: 0 42px
 .serial-mode>span { color: var(--subtle); font-size: 9px; font-weight: 650; letter-spacing: .4px; }
 .serial-mode>strong { color: var(--text); font-size: 10px; }
 .serial-mode>small { color: var(--muted); font-size: 9px; }
-.transmission-state { display: flex; min-height: 38px; flex-basis: 100%; align-items: center; gap: 9px; padding: 8px 11px; border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--border)); border-radius: 8px; background: color-mix(in srgb, var(--accent) 8%, var(--panel)); color: var(--text); font-size: 10px; line-height: 1.45; }
-.transmission-state[hidden] { display: none; }
-.transmission-spinner { width: 13px; height: 13px; flex: 0 0 auto; border: 2px solid color-mix(in srgb, var(--accent) 28%, transparent); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
-.transmission-state.is-success { border-color: color-mix(in srgb, var(--green) 32%, var(--border)); background: color-mix(in srgb, var(--green) 8%, var(--panel)); color: var(--green); }
-.transmission-state.is-success .transmission-spinner { display: grid; place-items: center; border: 0; color: var(--green); animation: none; }
-.transmission-state.is-success .transmission-spinner::before { content: "✓"; font-size: 13px; font-weight: 800; }
-.transmission-state.is-error { border-color: color-mix(in srgb, var(--red) 35%, var(--border)); background: color-mix(in srgb, var(--red) 8%, var(--panel)); color: var(--red); }
-.transmission-state.is-error .transmission-spinner { display: grid; place-items: center; border: 0; color: var(--red); animation: none; }
-.transmission-state.is-error .transmission-spinner::before { content: "!"; font-size: 12px; font-weight: 800; }
-@keyframes spin { to { transform: rotate(360deg); } }
 .serial-hint { flex-basis: 100%; margin-top: -8px; color: var(--subtle); font-size: 9px; text-align: right; }
 .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 29px 0 12px; }
 .section-heading h2 { margin: 5px 0 0; font-size: 15px; font-weight: 600; }

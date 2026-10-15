@@ -91,16 +91,6 @@ function setPage(name) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function setTransmissionState(message, state = "loading") {
-  const status = $("#transmission-state");
-  status.hidden = !message;
-  status.classList.toggle("is-loading", state === "loading");
-  status.classList.toggle("is-success", state === "success");
-  status.classList.toggle("is-error", state === "error");
-  status.setAttribute("aria-busy", String(state === "loading" && Boolean(message)));
-  $("#transmission-message").textContent = message;
-}
-
 function sendDisplayState() {
   const message = {
     type: "usbmonitor:state",
@@ -666,16 +656,10 @@ async function sendDisplayFrame() {
   frameSendRunning = true;
   if (currentDeviceStatus) updateStatus(currentDeviceStatus);
   try {
-    setTransmissionState("Preparando e capturando o layout do display…");
     const imagePng = await captureDisplayPng();
-    setTransmissionState("Enviando quadro completo para o display…");
     const result = await invoke("send_display_frame", { imagePng });
-    const seconds = Number(settings.refreshIntervalSecs) || 5;
-    setTransmissionState(`Tela enviada com sucesso (${result.width} × ${result.height}). Próxima atualização em ${seconds} s.`, "success");
-    notice(`Layout enviado ao display (${result.width} × ${result.height}, RGB565). Próxima atualização em ${seconds} s.`);
     return result;
   } catch (error) {
-    setTransmissionState(`Falha na transmissão: ${error}`, "error");
     // Check if the serial port is still alive. Only stop auto-refresh when
     // the port has been lost, not on transient capture/rendering errors —
     // those will be retried at the next interval.
@@ -706,10 +690,8 @@ async function togglePort() {
     displayTransmitting = false;
     try {
       updateStatus(await invoke("disconnect_serial"));
-      setTransmissionState("Transmissão interrompida. A porta serial foi fechada.", "success");
       notice("Transmissão interrompida e porta COM fechada.");
     } catch (error) {
-      setTransmissionState(`Não foi possível fechar a porta COM: ${error}`, "error");
       notice(`Não foi possível fechar a porta COM: ${error}`, "error");
     }
     return;
@@ -717,7 +699,6 @@ async function togglePort() {
 
   let opened = false;
   try {
-    setTransmissionState(`Abrindo a porta ${$("#port-select").value} e preparando a transmissão…`);
     const data = await invoke("connect_serial", {
       port: $("#port-select").value,
       baudRate: 115200,
@@ -727,7 +708,6 @@ async function togglePort() {
     updateStatus(data);
     startDisplayRefresh();
   } catch (error) {
-    setTransmissionState(`Não foi possível iniciar a transmissão: ${error}`, "error");
     clearInterval(displayRefreshTimer);
     displayRefreshTimer = null;
     displayTransmitting = false;
