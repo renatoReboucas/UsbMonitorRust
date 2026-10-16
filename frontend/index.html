@@ -32,6 +32,14 @@
         <section class="page active" id="page-monitor">
           <div class="heading"><div><label>PAINEL DO SISTEMA</label><h1>Visão geral</h1><p>Acompanhe o computador e controle seu display em um só lugar.</p></div><span class="live"><i id="main-dot"></i><span id="main-status">Verificando dispositivo</span></span></div>
           <div id="notice" class="notice" role="status" hidden></div>
+          <div class="module-bar">
+            <span class="module-tag">MÓDULO TAURI CORE 2.0 // VISÃO GERAL DO SISTEMA</span>
+            <span id="module-link" class="module-link is-stale"><i></i><span>LINK INATIVO</span></span>
+            <div class="module-actions">
+              <button class="secondary" id="force-send"><span class="icon-slot" data-lucide="refresh-cw" aria-hidden="true"></span><span>Forçar envio</span></button>
+              <button class="secondary" id="restart-com"><span class="icon-slot" data-lucide="usb" aria-hidden="true"></span><span>Reiniciar porta COM</span></button>
+            </div>
+          </div>
           <section class="device panel" aria-label="Conexão do display USB">
             <div class="device-info"><span class="device-icon" data-lucide="monitor" aria-hidden="true"></span><div><label>DISPLAY USB 3,5″</label><h2 id="device-name">Procurando dispositivo…</h2><p id="device-detail">Identificação USB: VID_1A86 · PID_5722</p></div></div>
             <div class="device-actions">
@@ -47,7 +55,7 @@
             <section class="preview panel main-display-preview" aria-label="Prévia fiel da tela 3,5 polegadas">
               <div class="display-preview-heading"><div><label>DISPLAY CONECTADO</label><h2>Prévia do layout</h2></div><span class="tag" id="weather-city-label">SÃO PAULO, BRASIL</span></div>
               <div class="screen"><iframe id="display-frame" title="Prévia do layout HTML do display" sandbox="allow-scripts allow-same-origin"></iframe></div>
-              <div class="display-preview-caption"><span class="preview-indicator"></span><p>Visualização em tempo real <span>·</span> 480 × 320 px</p><button class="text-action" data-go="themes">Alterar layout <span data-lucide="arrow-right" aria-hidden="true"></span></button></div>
+              <div class="display-preview-caption"><span class="preview-indicator"></span><p>Visualização em tempo real <span>·</span> 480 × 320 px</p><span id="buffer-badge" class="buffer-badge">Buffer USB: aguardando</span><button class="text-action" data-go="themes">Alterar layout <span data-lucide="arrow-right" aria-hidden="true"></span></button></div>
             </section>
             <section class="live-metrics" aria-label="Métricas atuais do computador">
             <article class="live-metric-card cpu-live-card">
@@ -78,6 +86,10 @@
             <div class="chart-legend"><span class="legend-cpu">CPU</span><span class="legend-ram">RAM</span><span class="legend-gpu">GPU</span><small id="history-range">Aguardando amostras</small></div>
             <p class="chart-note">Pausar interrompe apenas o desenho do gráfico; a coleta das métricas continua em segundo plano.</p>
           </section>
+          <section class="panel serial-log" aria-label="Log do stream serial USB">
+            <div class="serial-log-heading"><div><label>STREAM SERIAL USB</label><h2>Log de comunicação</h2></div><span class="tag" id="serial-log-count">0 eventos</span></div>
+            <ol id="serial-log" class="serial-log-list" aria-live="polite"></ol>
+          </section>
           <div class="section-heading"><div><label>PERSONALIZAÇÃO</label><h2>Acesso rápido</h2></div><button class="link" data-go="settings">Todas as opções <span data-lucide="arrow-right" aria-hidden="true"></span></button></div>
           <div class="quick-grid">
             <section class="panel quick"><span class="tile-icon cyan" data-lucide="layout-grid" aria-hidden="true"></span><label class="field"><span>LAYOUT HTML DO DISPLAY</span><select id="quick-theme"></select></label><button class="subtle" data-go="themes">Explorar layouts</button></section>
@@ -89,7 +101,14 @@
         <section class="page" id="page-themes">
           <div class="heading"><div><label>DISPLAY USB · 480 × 320</label><h1>Layouts</h1><p>Escolha a experiência exibida no seu display.</p></div><button class="secondary page-back" data-go="monitor">Voltar ao painel</button></div>
           <div class="page-intro"><span class="intro-icon" data-lucide="layout-grid" aria-hidden="true"></span><div><b>Seu display, do seu jeito</b><p>Selecione um layout pronto ou crie o seu em HTML e CSS. A escolha é usada na prévia e na transmissão USB.</p></div></div>
-          <div id="theme-grid" class="theme-grid"></div>
+          <div id="layout-filters" class="layout-filters" role="tablist" aria-label="Filtrar layouts por categoria"></div>
+          <div class="layouts-body">
+            <div id="theme-grid" class="theme-grid"></div>
+            <aside id="layout-inspect" class="panel layout-inspect" aria-live="polite">
+              <label>INSPEÇÃO TÉCNICA</label>
+              <p class="inspect-empty">Selecione um layout para ver os detalhes.</p>
+            </aside>
+          </div>
           <section class="panel template-help"><b>Como criar um layout</b><p>Crie um arquivo HTML em <code>frontend/displays/</code> e registre o identificador e o nome em <code>frontend/displays/templates.json</code>. Use <code>reference.html</code> como exemplo e reutilize <code>runtime.js</code> para receber as métricas ao vivo. Depois reinicie o app e selecione o novo layout.</p><p>O HTML selecionado é rasterizado no tamanho 480 × 320 e enviado ao display; para imagens em CSS, prefira recursos embutidos no próprio arquivo.</p></section>
         </section>
         <section class="page" id="page-settings">
@@ -106,6 +125,8 @@
                 <label class="field"><span>RAM</span><input id="ram-custom" maxlength="24" placeholder="Ex.: 32 GB DDR5"></label>
                 <small>Esses textos aparecem como identificação nos cartões da prévia.</small>
               </fieldset>
+              <label class="field"><span>ALERTA DE TEMPERATURA DA CPU (°C)</span><input id="cpu-alert" type="number" min="0" max="150" step="1" value="85"></label>
+              <label class="field"><span>ALERTA DE TEMPERATURA DA GPU (°C)</span><input id="gpu-alert" type="number" min="0" max="150" step="1" value="80"></label>
               <label class="field"><span>CIDADE PARA PREVISÃO DO TEMPO</span><span class="inline"><input id="city" maxlength="100" placeholder="Ex.: São Paulo, São Paulo, Brasil"><button class="secondary" id="search-city">Atualizar clima</button></span></label>
               <small id="city-result">Clima público via Open-Meteo; a cidade configurada é enviada ao serviço para a consulta.</small>
             </section>

@@ -82,6 +82,7 @@ validação antes de serem salvos.
 | `accentColor` | cor de destaque no formato `#RRGGBB` |
 | `cpuCustom` `gpuCustom` `ramCustom` | rótulos dos cartões, até 24 caracteres cada |
 | `city` | cidade da previsão, no formato `Cidade, Estado, País` (até 100 caracteres) |
+| `cpuAlertC` `gpuAlertC` | limiares de temperatura (0 a 150 °C) para alerta visual; `0` desliga |
 | `startWithWindows` | inicia o aplicativo ao entrar na conta |
 | `refreshIntervalSecs` | intervalo de envio ao display: 3, 5, 10, 15, 30 ou 60 segundos |
 

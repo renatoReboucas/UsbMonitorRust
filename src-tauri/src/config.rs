@@ -15,6 +15,8 @@ pub struct AppConfig {
     pub cpu_custom: String,
     pub gpu_custom: String,
     pub ram_custom: String,
+    pub cpu_alert_c: u32,
+    pub gpu_alert_c: u32,
     pub sensor: String,
     pub network: String,
     pub city: String,
@@ -34,6 +36,8 @@ impl Default for AppConfig {
             cpu_custom: String::new(),
             gpu_custom: String::new(),
             ram_custom: String::new(),
+            cpu_alert_c: 85,
+            gpu_alert_c: 80,
             sensor: "CPU (Tctl/Tdie)".to_owned(),
             network: "Detecção automática".to_owned(),
             city: "São Paulo, São Paulo".to_owned(),
@@ -75,6 +79,12 @@ impl AppConfig {
                     "A identificação personalizada de {label} excede 24 caracteres."
                 ));
             }
+        }
+        if self.cpu_alert_c > 150 {
+            return Err("O alerta de temperatura da CPU precisa estar entre 0 e 150 °C.".to_owned());
+        }
+        if self.gpu_alert_c > 150 {
+            return Err("O alerta de temperatura da GPU precisa estar entre 0 e 150 °C.".to_owned());
         }
         if !valid_color(&self.accent_color) {
             return Err("A cor de destaque deve estar no formato #RRGGBB.".to_owned());
@@ -195,6 +205,26 @@ mod tests {
             ..AppConfig::default()
         };
         assert!(invalid.validate().is_err());
+    }
+
+    #[test]
+    fn defaults_and_validates_temperature_alerts() {
+        let defaults = AppConfig::default();
+        assert_eq!(defaults.cpu_alert_c, 85);
+        assert_eq!(defaults.gpu_alert_c, 80);
+
+        let too_hot = AppConfig {
+            gpu_alert_c: 200,
+            ..AppConfig::default()
+        };
+        assert!(too_hot.validate().is_err());
+
+        let disabled = AppConfig {
+            cpu_alert_c: 0,
+            gpu_alert_c: 0,
+            ..AppConfig::default()
+        };
+        assert!(disabled.validate().is_ok());
     }
 
     #[test]

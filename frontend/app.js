@@ -59,6 +59,8 @@ const defaults = {
   palette: "mocha",
   startWithWindows: false,
   refreshIntervalSecs: 5,
+  cpuAlertC: 85,
+  gpuAlertC: 80,
 };
 let settings = { ...defaults };
 let displayTemplates = [];
@@ -77,6 +79,19 @@ let displayRefreshTimer = null;
 let displayTransmitting = false;
 let frameSendRunning = false;
 let chartPaused = false;
+let activeCategory = "all";
+let simulation = null;
+let simulationTimer = null;
+let lastSerialStatus = null;
+const serialEvents = [];
+const templateIdCache = new Map();
+const templateCategories = {
+  escuro: "Escuros / OLED",
+  claro: "Claros / Minimal",
+  hud: "Mil-spec & HUD",
+  pixel: "Pixel & Retrô",
+};
+const categoryOrder = ["escuro", "claro", "hud", "pixel"];
 
 function formatGb(bytes) {
   return (bytes / (1024 ** 3)).toFixed(1);
@@ -107,8 +122,8 @@ function sendDisplayState() {
   const message = {
     type: "usbmonitor:state",
     payload: {
-      metrics: latestMetrics || {},
-      weather: currentWeather,
+      metrics: simulation?.metrics || latestMetrics || {},
+      weather: simulation?.weather || currentWeather,
       settings,
       clock: displayClock,
       palette: settings.palette,
@@ -147,6 +162,7 @@ async function chooseTheme(id) {
       return;
     }
   }
+  renderInspection(selectedTemplate);
   sendDisplayState();
 }
 
@@ -187,6 +203,7 @@ function applyPalette(name) {
   sendDisplayState();
 }
 
+// Registra os layouts e monta a galeria (filtros, cartões e inspeção).
 async function renderThemes() {
   const response = await fetch("./displays/templates.json");
   if (!response.ok) throw new Error(`Não foi possível carregar a lista de layouts (${response.status}).`);
@@ -203,10 +220,47 @@ async function renderThemes() {
     ids.add(template.id);
     return template;
   });
+  templateIdCache.clear();
   $("#quick-theme").replaceChildren(...displayTemplates.map(({ id, name }) => new Option(name, id)));
-  const grid = $("#theme-grid");
-  grid.replaceChildren();
+  renderFilters();
+  renderLayouts();
+  await renderInspection(selectedTemplate);
+}
+
+// Pílulas de categoria com contadores. "Todos" sempre vem primeiro.
+function renderFilters() {
+  const container = $("#layout-filters");
+  if (!container) return;
+  const counts = new Map(categoryOrder.map((key) => [key, 0]));
   for (const template of displayTemplates) {
+    if (counts.has(template.category)) counts.set(template.category, counts.get(template.category) + 1);
+  }
+  const pills = [
+    { key: "all", label: "Todos", count: displayTemplates.length },
+    ...categoryOrder
+      .filter((key) => counts.get(key) > 0)
+      .map((key) => ({ key, label: templateCategories[key], count: counts.get(key) })),
+  ];
+  container.replaceChildren(...pills.map((pill) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "filter-pill";
+    button.dataset.category = pill.key;
+    button.setAttribute("role", "tab");
+    button.setAttribute("aria-selected", String(pill.key === activeCategory));
+    button.textContent = `${pill.label} (${pill.count})`;
+    return button;
+  }));
+}
+
+// Cartões visíveis para a categoria ativa.
+function renderLayouts() {
+  const grid = $("#theme-grid");
+  if (!grid) return;
+  const visible = activeCategory === "all"
+    ? displayTemplates
+    : displayTemplates.filter((template) => template.category === activeCategory);
+  grid.replaceChildren(...visible.map((template) => {
     const card = document.createElement("button");
     card.type = "button";
     card.className = "theme-card";
@@ -225,7 +279,234 @@ async function renderThemes() {
     hint.textContent = template.description;
     card.append(image, title, hint);
     card.addEventListener("click", () => chooseTheme(template.id));
-    grid.append(card);
+    return card;
+  }));
+}
+
+// Lê os ids do contrato direto do HTML do layout (fonte fiel, sem duplicar metadado).
+async function loadTemplateIds(templateId) {
+  if (templateIdCache.has(templateId)) return templateIdCache.get(templateId);
+  try {
+    const response = await fetch(`./displays/${encodeURIComponent(templateId)}.html`);
+    const html = await response.text();
+    const ids = [...new Set([...html.matchAll(/id="([^"]+)"/g)].map((match) => match[1]))];
+    templateIdCache.set(templateId, ids);
+    return ids;
+  } catch (_ignored) {
+    return [];
+  }
+}
+
+function miniButton(label, icon, onClick) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "secondary inspect-button";
+  const slot = document.createElement("span");
+  slot.className = "icon-slot";
+  slot.dataset.lucide = icon;
+  slot.setAttribute("aria-hidden", "true");
+  if (typeof setIcon === "function") setIcon(slot, icon);
+  const text = document.createElement("span");
+  text.textContent = label;
+  button.append(slot, text);
+  button.addEventListener("click", onClick);
+  return button;
+}
+
+// Painel lateral: resolução, arquivos, motor, paleta e os ids mapeados.
+async function renderInspection(templateId) {
+  const panel = $("#layout-inspect");
+  const template = displayTemplates.find((item) => item.id === templateId);
+  if (!panel || !template) return;
+  const ids = await loadTemplateIds(template.id);
+  panel.replaceChildren();
+  const label = document.createElement("label");
+  label.textContent = "INSPEÇÃO TÉCNICA";
+  const title = document.createElement("h2");
+  title.textContent = template.name;
+  const description = document.createElement("p");
+  description.className = "inspect-description";
+  description.textContent = template.description;
+  const list = document.createElement("dl");
+  list.className = "inspect-list";
+  for (const [term, value] of [
+    ["Resolução", "480 × 320 px RGB565"],
+    ["Arquivos", `displays/${template.id}.html & .css`],
+    ["Motor", "postMessage → runtime.js"],
+    ["Paleta", `${palettes[settings.palette]?.label || "Mocha"} (paleta-aware)`],
+    ["Categoria", templateCategories[template.category] || "—"],
+    ["IDs do contrato", ids.length ? `${ids.length} mapeados` : "não encontrados"],
+  ]) {
+    const dt = document.createElement("dt");
+    dt.textContent = term;
+    const dd = document.createElement("dd");
+    dd.textContent = value;
+    list.append(dt, dd);
+  }
+  const idsBox = document.createElement("p");
+  idsBox.className = "inspect-ids";
+  idsBox.textContent = ids.map((id) => `#${id}`).join(" · ") || "Nenhum id encontrado no HTML.";
+  const actions = document.createElement("div");
+  actions.className = "inspect-actions";
+  actions.append(
+    miniButton("Capturar quadro PNG", "download", downloadDisplayPng),
+    miniButton("Copiar caminho", "layout-grid", () => copyLayoutPath(template.id)),
+    miniButton(simulation ? "Parar simulados" : "Testar dados simulados", "activity", toggleSimulation),
+  );
+  panel.append(label, title, description, list, idsBox, actions);
+}
+
+async function copyLayoutPath(templateId) {
+  const path = `frontend/displays/${templateId}.html`;
+  try {
+    await navigator.clipboard.writeText(path);
+    notice(`Caminho copiado: ${path}.`);
+  } catch (_ignored) {
+    notice(`Caminho do arquivo: ${path}.`);
+  }
+}
+
+// Captura o quadro atual e baixa o PNG 480 × 320 já com brilho e rotação.
+async function downloadDisplayPng() {
+  try {
+    const bytes = await captureDisplayPng();
+    const blob = new Blob([new Uint8Array(bytes)], { type: "image/png" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `display-${selectedTemplate}.png`;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    notice("Quadro capturado em PNG (480 × 320).");
+  } catch (error) {
+    notice(`Não foi possível capturar o quadro: ${error}`, "error");
+  }
+}
+
+// Alterna a telemetria simulada. O app não tem dados falsos próprios; isto
+// serve para conferir um layout sem hardware nem espera pelo clima real.
+function toggleSimulation() {
+  clearTimeout(simulationTimer);
+  if (simulation) {
+    simulation = null;
+    simulationTimer = null;
+    notice("Dados simulados desligados; voltando à telemetria real.");
+  } else {
+    simulation = buildSimulatedState();
+    simulationTimer = setTimeout(() => {
+      simulation = null;
+      simulationTimer = null;
+      sendDisplayState();
+    }, 12000);
+    notice("Exibindo dados simulados por alguns segundos.");
+  }
+  sendDisplayState();
+  renderInspection(selectedTemplate);
+}
+
+function buildSimulatedState() {
+  const now = Date.now();
+  return {
+    metrics: {
+      cpu_usage_percent: 37,
+      cpu_frequency_mhz: 4850,
+      cpu_temperature_c: 48,
+      cpu_name: "AMD Ryzen 7 7800X3D",
+      ram_used_bytes: 13.4 * 1024 ** 3,
+      ram_total_bytes: 31.9 * 1024 ** 3,
+      gpu_usage_percent: 18,
+      gpu_temperature_c: 41,
+      gpu_name: "NVIDIA GeForce RTX 4080 Super",
+      vram_used_bytes: 3.2 * 1024 ** 3,
+      vram_total_bytes: 16 * 1024 ** 3,
+      upload_bytes_per_sec: 1.2 * 1024 ** 2,
+      download_bytes_per_sec: 14.8 * 1024 ** 2,
+      uptime_seconds: 15165,
+      timestamp_unix_ms: now,
+    },
+    weather: {
+      city: "São Paulo",
+      temperatureC: 22,
+      highC: 27,
+      lowC: 16,
+      humidityPercent: 64,
+      description: "Ensolarado",
+      icon: "cloud-sun",
+      observedAtUnixMs: now,
+    },
+  };
+}
+
+// Log serial no frontend: o backend não emite eventos, então registramos as
+// transições de estado e o resultado de cada envio. Linhas repetidas em 30 s
+// são fundidas para não poluir a lista.
+function pushSerial(message, type = "info") {
+  const now = Date.now();
+  const last = serialEvents.at(-1);
+  if (last && last.type === type && last.message === message && now - last.at < 30000) {
+    last.at = now;
+    last.count = (last.count || 1) + 1;
+    renderSerialLog();
+    return;
+  }
+  serialEvents.push({ at: now, type, message });
+  if (serialEvents.length > 40) serialEvents.shift();
+  renderSerialLog();
+}
+
+function renderSerialLog() {
+  const list = $("#serial-log");
+  const count = $("#serial-log-count");
+  if (!list) return;
+  if (count) count.textContent = `${serialEvents.length} evento${serialEvents.length === 1 ? "" : "s"}`;
+  list.replaceChildren(...serialEvents.slice().reverse().map((event) => {
+    const item = document.createElement("li");
+    item.className = `serial-line ${event.type}`;
+    const time = document.createElement("span");
+    time.className = "serial-time";
+    time.textContent = new Date(event.at).toLocaleTimeString("pt-BR");
+    const text = document.createElement("span");
+    text.className = "serial-text";
+    text.textContent = event.count > 1 ? `${event.message} (×${event.count})` : event.message;
+    item.append(time, text);
+    return item;
+  }));
+}
+
+function logStatusTransitions(data) {
+  const key = `${data.connected}|${data.port_open}|${data.port || ""}`;
+  if (lastSerialStatus === key) return;
+  lastSerialStatus = key;
+  if (data.port_open) pushSerial(`Porta aberta em ${data.port || "COM"} · 115200 8N1`, "ok");
+  else if (data.connected) pushSerial(`Display detectado em ${data.port || "COM"} · VID_1A86:PID_5722`, "info");
+  else pushSerial("Display não encontrado. Conecte o USB (VID_1A86:PID_5722).", "warn");
+}
+
+function updateBufferBadge(result) {
+  const badge = $("#buffer-badge");
+  if (!badge) return;
+  const kb = (Number(result?.bytes_sent) / 1024).toFixed(1);
+  badge.textContent = `Buffer USB: RGB565 OK · ${kb} KB`;
+}
+
+async function restartSerialPort() {
+  try {
+    pushSerial("Reiniciando porta COM…", "info");
+    if (currentDeviceStatus?.port_open) await invoke("disconnect_serial");
+    const data = await invoke("connect_serial", {
+      port: $("#port-select").value || currentDeviceStatus?.port,
+      baudRate: 115200,
+    });
+    displayTransmitting = true;
+    updateStatus(data);
+    startDisplayRefresh();
+    pushSerial("Porta reiniciada e transmissão retomada.", "ok");
+  } catch (error) {
+    displayTransmitting = false;
+    notice(`Não foi possível reiniciar a porta COM: ${error}`, "error");
+    pushSerial(`Erro ao reiniciar a porta: ${error}`, "error");
   }
 }
 
@@ -256,7 +537,13 @@ function setButtonIcon(button, name) {
 
 function updateStatus(data) {
   currentDeviceStatus = data;
+  logStatusTransitions(data);
   const connected = data.connected;
+  const moduleLink = $("#module-link");
+  if (moduleLink) {
+    moduleLink.classList.toggle("is-stale", !connected);
+    moduleLink.querySelector("span").textContent = data.port_open ? "LINK ATIVO · TX" : connected ? "LINK ATIVO" : "LINK INATIVO";
+  }
   $("#side-dot").classList.toggle("online", connected);
   $("#main-dot").classList.toggle("online", connected);
   $("#side-status").textContent = data.port_open ? "Porta serial aberta" : connected ? "Display detectado" : "Display não encontrado";
@@ -773,6 +1060,8 @@ async function sendDisplayFrame() {
   try {
     const imagePng = await captureDisplayPng();
     const result = await invoke("send_display_frame", { imagePng });
+    updateBufferBadge(result);
+    pushSerial(`Pacote RGB565 enviado · ${result.width}×${result.height} · ${(result.bytes_sent / 1024).toFixed(1)} KB`, "ok");
     return result;
   } catch (error) {
     // Check if the serial port is still alive. Only stop auto-refresh when
@@ -787,9 +1076,11 @@ async function sendDisplayFrame() {
         displayTransmitting = false;
       }
     } catch (statusError) {
+      pushSerial(`Erro de porta: ${statusError}`, "error");
       notice(`Falha ao transmitir: ${error}. Não foi possível confirmar o estado da porta: ${statusError}`, "error");
       throw error;
     }
+    pushSerial(`Falha ao transmitir: ${error}`, "error");
     notice(`Falha ao transmitir a tela: ${error}`, "error");
     throw error;
   } finally {
@@ -805,6 +1096,7 @@ async function togglePort() {
     displayTransmitting = false;
     try {
       updateStatus(await invoke("disconnect_serial"));
+      pushSerial("Porta COM fechada · transmissão interrompida.", "info");
       notice("Transmissão interrompida e porta COM fechada.");
     } catch (error) {
       notice(`Não foi possível fechar a porta COM: ${error}`, "error");
@@ -822,6 +1114,7 @@ async function togglePort() {
     displayTransmitting = true;
     updateStatus(data);
     startDisplayRefresh();
+    pushSerial(`Transmissão iniciada em ${data.port || $("#port-select").value} · 115200 8N1`, "ok");
   } catch (error) {
     clearInterval(displayRefreshTimer);
     displayRefreshTimer = null;
@@ -834,6 +1127,7 @@ async function togglePort() {
         return;
       }
     }
+    pushSerial(`Erro ao abrir a porta: ${error}`, "error");
     if (!$("#notice").classList.contains("error")) notice(String(error), "error");
   }
 }
@@ -855,6 +1149,8 @@ function readSettings() {
     palette: $("#palette").value,
     startWithWindows: $("#start-with-windows").checked,
     refreshIntervalSecs: chosenInterval,
+    cpuAlertC: Number($("#cpu-alert").value) || 0,
+    gpuAlertC: Number($("#gpu-alert").value) || 0,
   };
 }
 
@@ -879,6 +1175,8 @@ function applySettings(config) {
   $("#city").value = settings.city;
   $("#palette").value = settings.palette;
   $("#start-with-windows").checked = settings.startWithWindows;
+  if ($("#cpu-alert")) $("#cpu-alert").value = String(settings.cpuAlertC ?? 85);
+  if ($("#gpu-alert")) $("#gpu-alert").value = String(settings.gpuAlertC ?? 80);
   const intervalStr = String(settings.refreshIntervalSecs || 5);
   if ($("#refresh-interval")) $("#refresh-interval").value = intervalStr;
   if ($("#home-refresh-interval")) $("#home-refresh-interval").value = intervalStr;
@@ -936,6 +1234,17 @@ $("#chart-toggle").addEventListener("click", () => setChartPaused(!chartPaused))
 $("#connect").addEventListener("click", togglePort);
 $("#send-now").addEventListener("click", () => {
   sendDisplayFrame().catch((error) => console.error("Falha no envio manual ao display:", error));
+});
+$("#force-send").addEventListener("click", () => {
+  sendDisplayFrame().catch((error) => console.error("Falha no envio manual ao display:", error));
+});
+$("#restart-com").addEventListener("click", restartSerialPort);
+$("#layout-filters").addEventListener("click", (event) => {
+  const pill = event.target.closest(".filter-pill");
+  if (!pill) return;
+  activeCategory = pill.dataset.category;
+  renderFilters();
+  renderLayouts();
 });
 $("#brightness").addEventListener("input", (event) => { $("#brightness-value").value = `${event.target.value}%`; });
 $("#rotation").addEventListener("change", (event) => {
@@ -1001,6 +1310,7 @@ async function start() {
     notice(`Não foi possível carregar os layouts HTML: ${error}`, "error");
     return;
   }
+  pushSerial("Interface inicializada · aguardando display.", "info");
   tick();
   try {
     applySettings(await invoke("load_config"));

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <link rel="stylesheet" href="./display-base.css">
+    <link rel="stylesheet" href="./hud-matrix.css">
+    <script src="../icons.js" defer></script>
+    <script src="./runtime.js" defer></script>
+    <title>HUD Cyberpunk Turbinado · Matrix V4.2 · 3.5"</title>
+  </head>
+  <body>
+    <main class="display hm">
+      <header class="hm-header">
+        <div class="hm-brand">
+          <span class="brand-mark" data-lucide="activity" aria-hidden="true"></span>
+          <div>
+            <b id="computer">SYS-MONITOR</b>
+            <small id="os">WINDOWS</small>
+          </div>
+        </div>
+
+        <div class="clock-group hm-clock">
+          <time id="clock" class="clock">--:--</time>
+          <span id="date" class="clock-date">-- --- ----</span>
+        </div>
+
+        <div class="weather hm-weather">
+          <span id="weather-icon" class="weather-icon" data-lucide="cloud" aria-hidden="true"></span>
+          <b id="weather-temperature" class="weather-temp">—°C</b>
+          <span id="weather-city" class="weather-city">SÃO PAULO</span>
+        </div>
+      </header>
+
+      <!-- Três módulos de telemetria com cantos chamferados e mira tática. -->
+      <section class="hm-modules" aria-label="Uso de CPU, memória e GPU">
+        <article class="hm-metric hm-cpu">
+          <div class="hm-head">
+            <span class="hm-label">CPU</span>
+            <span id="cpu-frequency" class="hm-spec">— GHz</span>
+          </div>
+          <div class="hm-readout">
+            <strong id="cpu-usage" class="hm-value">N/D</strong>
+            <div class="hm-meter"><i id="cpu-meter" class="hm-fill"></i></div>
+          </div>
+          <small id="cpu-name" class="hm-name">Processador</small>
+        </article>
+
+        <article class="hm-metric hm-ram">
+          <div class="hm-head">
+            <span class="hm-label">RAM</span>
+            <span id="ram-total" class="hm-spec">N/D</span>
+          </div>
+          <div class="hm-readout">
+            <strong id="ram-usage" class="hm-value">N/D</strong>
+            <div class="hm-meter"><i id="ram-meter" class="hm-fill"></i></div>
+          </div>
+          <small id="ram-name" class="hm-name">Memória do sistema</small>
+        </article>
+
+        <article class="hm-metric hm-gpu">
+          <div class="hm-head">
+            <span class="hm-label">GPU</span>
+            <span id="gpu-temperature" class="hm-spec">N/D</span>
+          </div>
+          <div class="hm-readout">
+            <strong id="gpu-usage" class="hm-value">N/D</strong>
+            <div class="hm-meter"><i id="gpu-meter" class="hm-fill"></i></div>
+          </div>
+          <small id="gpu-name" class="hm-name">GPU indisponível</small>
+        </article>
+      </section>
+
+      <!-- Rodapé: uptime, rede, temperatura da CPU e VRAM. -->
+      <footer class="hm-footer" aria-label="Resumo do sistema">
+        <div class="hm-cell">
+          <span class="hm-flabel">UPTIME</span>
+          <b id="uptime" class="hm-fvalue">—</b>
+        </div>
+        <div class="hm-cell">
+          <span class="hm-flabel">NET</span>
+          <span class="hm-net">
+            <b id="upload" class="net-upload">—</b>
+            <b id="download" class="net-down">—</b>
+          </span>
+        </div>
+        <div class="hm-cell">
+          <span class="hm-flabel">TEMP</span>
+          <b id="cpu-temperature" class="hm-fvalue hm-temp">CPU: —°C</b>
+        </div>
+        <div class="hm-cell">
+          <span class="hm-flabel">VRAM</span>
+          <b id="vram" class="hm-fvalue">—</b>
+        </div>
+      </footer>
+    </main>
+  </body>
+</html>

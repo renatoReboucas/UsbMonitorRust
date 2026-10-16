@@ -80,9 +80,16 @@ com os métodos recuperados, não como prova isolada do protocolo.
   desativa transições antes de ler os estilos, senão os medidores saem vazios.
   O botão de transmissão tem largura fixa (158 px) em todos os estados, com o
   ícone (play, stop, fechar, sincronizar) sempre visível; rótulo e ícone trocam
-  sem redimensionar o cartão. Os rodapés dos quatro layouts antigos usam o
-  formato literal `CPU: XX°C`, rede com uma casa decimal (`↑12.3M`) e valores
-  encurtados de uptime (`3d12h`) e VRAM (`10/24G`), sem reticências.
+  sem redimensionar o cartão. Os rodapés dos layouts no molde antigo
+  (referência, compacto, minimal, HUD e HUD Matrix) usam o formato literal
+  `CPU: XX°C`, rede com uma casa decimal (`↑12.3M`) e valores encurtados de
+  uptime (`3d12h`) e VRAM (`10/24G`), sem reticências.
+- A tela de Layouts ganhou filtros por categoria (pílulas com contadores, campo
+  `category` em `templates.json`) e um painel de inspeção que lê os ids do
+  contrato direto do HTML, além de capturar o quadro em PNG e testar dados
+  simulados. A Visão geral mostra uma barra de módulo, o tamanho do buffer
+  RGB565 do último envio e um log serial. Em Configurações há limiares de
+  temperatura de CPU e GPU (`cpuAlertC`, `gpuAlertC`).
 
 ## Serviço de temperatura embutido no instalador
 

@@ -1,0 +1,251 @@
+/* Paleta + arranjo do layout HUD Cyberpunk Turbinado (Matrix V4.2).
+ *
+ * Paleta-aware: o layout não fixa cores. Os tons vêm das variáveis que o
+ * runtime.js injeta (--base, --accent, --cpu, --ram, --gpu, --warm), então o
+ * visual acompanha a paleta escolhida no app. As cores de estrutura usam
+ * color-mix sobre --text/--border para não depender de hex próprio. */
+
+html,
+body {
+  background: var(--base);
+}
+
+.hm {
+  grid-template-rows: 30px 1fr 30px;
+}
+
+/* Cabeçalho ---------------------------------------------------------------- */
+.hm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: 30px;
+  padding: 0 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  min-width: 0;
+  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+}
+
+.hm-brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.hm-brand .brand-mark {
+  display: inline-flex;
+  align-items: center;
+  color: var(--accent);
+  font-size: 13px;
+  flex: 0 0 auto;
+}
+
+.hm-brand b {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+}
+
+.hm-brand small {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+
+.hm-clock .clock {
+  color: var(--text);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.hm-clock .clock-date {
+  color: var(--warm);
+}
+
+/* Módulos ------------------------------------------------------------------ */
+.hm-modules {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  min-height: 0;
+}
+
+.hm-metric {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-1);
+  padding: 8px 9px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+
+/* Mira tática: dois cantos em "L" na cor do módulo. */
+.hm-metric::before,
+.hm-metric::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 0 solid var(--tone);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.hm-metric::before {
+  top: 4px;
+  right: 4px;
+  border-top-width: 2px;
+  border-right-width: 2px;
+}
+
+.hm-metric::after {
+  bottom: 4px;
+  left: 4px;
+  border-bottom-width: 2px;
+  border-left-width: 2px;
+}
+
+.hm-cpu { --tone: var(--cpu); }
+.hm-ram { --tone: var(--ram); }
+.hm-gpu { --tone: var(--gpu); }
+
+.hm-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+  min-width: 0;
+  line-height: 1;
+}
+
+.hm-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--tone);
+  flex: 0 0 auto;
+}
+
+.hm-spec {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.hm-readout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.hm-value {
+  font-size: clamp(30px, 7vw, 38px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--tone) 70%, transparent);
+}
+
+.hm-meter {
+  width: 100%;
+  height: 7px;
+  background: color-mix(in srgb, var(--text) 12%, transparent);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.hm-fill {
+  display: block;
+  width: 0%;
+  height: 100%;
+  background: var(--tone);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hm-name {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Rodapé ------------------------------------------------------------------- */
+.hm-footer {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  height: 30px;
+  padding: 0 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.hm-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border-right: 1px solid color-mix(in srgb, var(--text) 16%, transparent);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.hm-cell:last-child {
+  border-right: 0;
+}
+
+.hm-flabel {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  flex: 0 0 auto;
+}
+
+.hm-fvalue {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.hm-temp {
+  color: var(--warm);
+}
+
+.hm-net {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}

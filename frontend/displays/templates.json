@@ -2,31 +2,43 @@
   {
     "id": "reference",
     "name": "Referência · azul",
-    "description": "Cockpit digital com relógio hero 44px, clima e cartões de telemetria de alta legibilidade para 3,5″."
+    "description": "Cockpit digital com relógio hero 44px, clima e cartões de telemetria de alta legibilidade para 3,5″.",
+    "category": "escuro"
   },
   {
     "id": "compact",
     "name": "Compacto · neon",
-    "description": "3 pilares verticais com números gigantes de 42px e leitura instantânea à distância."
+    "description": "3 pilares verticais com números gigantes de 42px e leitura instantânea à distância.",
+    "category": "escuro"
   },
   {
     "id": "minimal",
     "name": "Minimal · claro",
-    "description": "Design claro de altíssimo contraste (WCAG AAA), tipografia suíça nítida e cartões brancos."
+    "description": "Design claro de altíssimo contraste (WCAG AAA), tipografia suíça nítida e cartões brancos.",
+    "category": "claro"
   },
   {
     "id": "hud",
     "name": "HUD · Cyberpunk OLED",
-    "description": "Preto absoluto OLED (#000000), instrumentação neon com números de 40px e zero brilho residual."
+    "description": "Preto absoluto OLED (#000000), instrumentação neon com números de 40px e zero brilho residual.",
+    "category": "hud"
+  },
+  {
+    "id": "hud-matrix",
+    "name": "HUD Cyberpunk Turbinado · Matrix V4.2",
+    "description": "Interface tática chamferada com miras, três módulos de telemetria e leitura militar de alto contraste.",
+    "category": "hud"
   },
   {
     "id": "crt",
     "name": "CRT",
-    "description": "Terminal retrô: relógio em fonte de matriz de pontos, cards de CPU, RAM e GPU com barras finas e faixa de temperatura e clima."
+    "description": "Terminal retrô: relógio em fonte de matriz de pontos, cards de CPU, RAM e GPU com barras finas e faixa de temperatura e clima.",
+    "category": "pixel"
   },
   {
     "id": "eliot",
     "name": "Pixel Eliot · Retrô 3,5″",
-    "description": "Pixel art fiel ao hardware Turing 3,5″: relógio hero matricial, telemetria de CPU/RAM/GPU e quadrante 2×2 de temperatura, VRAM, umidade e clima."
+    "description": "Pixel art fiel ao hardware Turing 3,5″: relógio hero matricial, telemetria de CPU/RAM/GPU e quadrante 2×2 de temperatura, VRAM, umidade e clima.",
+    "category": "pixel"
   }
 ]

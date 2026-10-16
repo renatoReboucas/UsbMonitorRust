@@ -377,6 +377,7 @@ footer span { padding: 0 4px; color: var(--border); }
 .template-crt { background: radial-gradient(ellipse at 20% 20%, #14211a, #0a0c0b 70%); }
 .template-eliot { background: radial-gradient(circle at 25% 30%, #16203a, #0b0c10 72%); }
 .template-hud { background: radial-gradient(ellipse at 50% 0%, #00323a, #000000 72%); }
+.template-hud-matrix { background: radial-gradient(circle at 72% 18%, #10303a, #05070d 74%); }
 .badge { position: absolute; top: 10px; right: 10px; padding: 5px 7px; border: 1px solid #ffffff26; border-radius: 6px; background: #11121dd9; color: #e5e5ee; font-size: 8px; font-weight: 650; letter-spacing: .4px; }
 .theme-card strong, .theme-card small { display: block; margin-right: 12px; margin-left: 12px; }
 .theme-card strong { margin-top: 12px; font-size: 11px; font-weight: 650; }
@@ -385,6 +386,46 @@ footer span { padding: 0 4px; color: var(--border); }
 .template-help b { color: var(--text); font-size: 12px; }
 .template-help p { margin: 8px 0 0; }
 .template-help code { padding: 2px 5px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg); color: var(--accent); font-size: .95em; }
+
+/* Barra de módulo, buffer e log serial (Visão geral) ---------------------- */
+.module-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; margin: 0 0 15px; padding: 11px 14px; border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border)); border-left: 3px solid var(--accent); border-radius: 9px; background: var(--panel); }
+.module-tag { color: var(--accent); letter-spacing: .08em; }
+.module-link { display: inline-flex; align-items: center; gap: 6px; color: var(--green); letter-spacing: .06em; }
+.module-link i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 7px currentColor; }
+.module-link.is-stale { color: #f9c875; }
+.module-link.is-stale i { box-shadow: none; }
+.module-actions { display: flex; gap: 8px; margin-left: auto; }
+.module-actions .secondary { min-height: 30px; }
+.buffer-badge { flex: 0 0 auto; color: var(--muted); white-space: nowrap; }
+
+.serial-log { margin-top: 18px; padding: 17px 18px; }
+.serial-log-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 11px; }
+.serial-log-heading label { color: var(--subtle); font-weight: 700; letter-spacing: 1.1px; }
+.serial-log-heading h2 { margin: 5px 0 0; font-family: var(--font-terminal); font-size: 15px; font-weight: 600; }
+.serial-log-list { display: grid; gap: 4px; max-height: 172px; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
+.serial-line { display: flex; gap: 10px; padding: 5px 8px; border-left: 2px solid var(--border); background: color-mix(in srgb, var(--surface) 55%, transparent); font-family: var(--font-terminal); font-size: 12px; }
+.serial-line.ok { border-left-color: var(--green); }
+.serial-line.warn { border-left-color: #f9c875; }
+.serial-line.error { border-left-color: var(--red); color: var(--red); }
+.serial-time { flex: 0 0 auto; color: var(--subtle); font-size: 11px; }
+.serial-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Galeria de layouts (categorias + inspeção) ------------------------------ */
+.layout-filters { display: flex; flex-wrap: wrap; gap: 8px; margin: -6px 0 17px; }
+.filter-pill { min-height: 30px; padding: 0 12px; border: 1px solid var(--border); border-radius: 30px; background: var(--panel); color: var(--muted); letter-spacing: .05em; transition: color .16s ease, border-color .16s ease, background .16s ease; }
+.filter-pill:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); color: var(--text); }
+.filter-pill[aria-selected="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 13%, var(--panel)); color: var(--accent); }
+.layouts-body { display: grid; grid-template-columns: minmax(0, 1fr) 300px; align-items: start; gap: 16px; }
+.layout-inspect { position: sticky; top: 84px; display: grid; gap: 10px; padding: 17px 18px; }
+.layout-inspect > label { color: var(--subtle); font-weight: 700; letter-spacing: 1.1px; }
+.layout-inspect h2 { margin: 0; font-family: var(--font-terminal); font-size: 18px; font-weight: 600; }
+.inspect-description, .inspect-empty { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.inspect-list { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 0; padding: 11px 0 0; border-top: 1px solid var(--border); }
+.inspect-list dt { color: var(--subtle); text-transform: uppercase; letter-spacing: .06em; }
+.inspect-list dd { margin: 0; color: var(--text); font-size: 10px; text-align: right; word-break: break-word; }
+.inspect-ids { margin: 0; padding: 10px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg); color: var(--accent); font-size: 9px; line-height: 1.6; word-break: break-word; }
+.inspect-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.inspect-button { min-height: 32px; padding: 0 10px; font-size: 9px; }
 
 .settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 14px; }
 .settings { display: grid; gap: 18px; padding: 19px; }
@@ -460,6 +501,12 @@ footer span { padding: 0 4px; color: var(--border); }
 .live-pill,
 .tag,
 .badge,
+.module-tag,
+.module-link,
+.buffer-badge,
+.filter-pill,
+.serial-log-heading label,
+.inspect-list dt,
 .version {
   font-family: var(--font-pixel);
   font-weight: 400;
@@ -485,6 +532,12 @@ footer span { padding: 0 4px; color: var(--border); }
 .live-pill { font-size: 7px; }
 .tag { font-size: 8px; }
 .badge { font-size: 7px; }
+.module-tag { font-size: 7px; }
+.module-link { font-size: 7px; }
+.buffer-badge { font-size: 8px; }
+.filter-pill { font-size: 8px; }
+.serial-log-heading label { font-size: 8px; }
+.inspect-list dt { font-size: 7px; }
 .version { font-size: 7px; }
 
 .heading h1,
@@ -519,6 +572,11 @@ footer span { padding: 0 4px; color: var(--border); }
 .tag,
 .live,
 .live-pill,
+.module-bar,
+.buffer-badge,
+.serial-log,
+.filter-pill,
+.layout-inspect,
 .field select,
 .field input:not([type="range"]):not([type="color"]),
 .color input {
@@ -549,6 +607,8 @@ footer span { padding: 0 4px; color: var(--border); }
   .serial-hint { text-align: left; }
   .quick-grid { grid-template-columns: 1fr; }
   .quick { min-height: 94px; }
+  .layouts-body { grid-template-columns: 1fr; }
+  .layout-inspect { position: static; }
 }
 @media (max-width: 900px) {
   .sidebar { width: 210px; }
