@@ -1,0 +1,331 @@
+/* Layout "Pixel Eliot" — pixel art retrô fiel ao hardware Turing 3,5″ (480 × 320).
+ *
+ * Paleta-aware: os tokens --eliot-* apontam para as variáveis semânticas que o
+ * runtime.js injeta (--base, --accent, --cpu, ...), então o layout acompanha a
+ * paleta escolhida no app em vez de fixar cores próprias.
+ *
+ * O tamanho é fluido em `cqw` (container queries) porque a prévia renderiza o
+ * layout numa viewport de até 900 px, enquanto a captura usa exatamente 480 px.
+ * Assim as proporções valem nos dois caminhos.
+ */
+
+@font-face {
+  font-family: "Press Start 2P";
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url("../fonts/press-start-2p.woff2") format("woff2");
+}
+
+:root {
+  --eliot-bg: var(--base);
+  --eliot-surface: var(--surface);
+  --eliot-border: var(--border);
+  --eliot-text: var(--text);
+  --eliot-muted: var(--muted);
+  --eliot-accent: var(--accent);
+  --eliot-green: var(--cpu);
+  --eliot-amber: var(--warm);
+  --eliot-purple: var(--ram);
+  --eliot-pink: color-mix(in srgb, var(--ram) 55%, var(--accent));
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: var(--eliot-bg);
+}
+
+body.pixel-body {
+  width: 100%;
+  height: 100%;
+  /* Container de tamanho: tudo abaixo mede com `cqw`, relativo à largura. */
+  container-type: size;
+  color: var(--eliot-text);
+  font-family: "Press Start 2P", "VT323", monospace;
+  font-variant-numeric: tabular-nums lining-nums;
+  background-color: var(--eliot-bg);
+  background-image:
+    radial-gradient(color-mix(in srgb, var(--text) 7%, transparent) 1px, transparent 1px);
+  background-size: 8px 8px;
+  image-rendering: pixelated;
+  -webkit-font-smoothing: none;
+}
+
+/* Grade raiz: 2 colunas (esquerda sistema/relógio/clima, direita hardware). */
+.display.display-eliot {
+  display: grid;
+  grid-template-columns: 1fr 1.08fr;
+  gap: 2.4cqw;
+  width: 100%;
+  height: 100%;
+  padding: 2.2cqw 2.5cqw;
+}
+
+/* Coluna esquerda --------------------------------------------------------- */
+.left-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.profile-header {
+  display: flex;
+  align-items: baseline;
+  gap: 1.4cqw;
+  margin-bottom: 1.4cqw;
+  font-size: 2.05cqw;
+  letter-spacing: 0.5px;
+}
+
+.user-tag {
+  color: var(--eliot-accent);
+}
+
+.version-tag {
+  font-size: 1.65cqw;
+  color: var(--eliot-muted);
+}
+
+.clock-wrap {
+  margin: 0.4cqw 0 1cqw;
+  overflow: hidden;
+}
+
+.digital-clock {
+  display: block;
+  /* Press Start 2P é larga (~1em por caractere): ~7.6cqw mantém "10:54" dentro
+     da coluna sem estourar. */
+  font-size: 7.6cqw;
+  line-height: 1;
+  color: var(--eliot-accent);
+  white-space: nowrap;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--eliot-accent) 45%, transparent);
+}
+
+.date-line {
+  margin-bottom: 1cqw;
+  font-size: 1.7cqw;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--eliot-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.weather-brief {
+  display: flex;
+  align-items: center;
+  gap: 1cqw;
+  margin-bottom: 2.4cqw;
+  font-size: 1.8cqw;
+  color: var(--eliot-accent);
+  min-width: 0;
+}
+
+.weather-icon {
+  display: inline-flex;
+  font-size: 1.9cqw;
+  color: var(--eliot-amber);
+  flex: 0 0 auto;
+}
+
+.weather-temp {
+  flex: 0 0 auto;
+}
+
+.weather-city {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Quadrante 2×2 ----------------------------------------------------------- */
+.quad-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  margin-top: auto;
+  border: 1px solid var(--eliot-border);
+  background: var(--eliot-surface);
+}
+
+.quad-cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5cqw;
+  padding: 1.1cqw 0.6cqw;
+  border: 1px solid color-mix(in srgb, var(--eliot-border) 70%, transparent);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.quad-label {
+  font-size: 1.67cqw;
+  letter-spacing: 0.5px;
+  color: var(--eliot-muted);
+}
+
+.quad-val {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6cqw;
+  font-size: 2.05cqw;
+}
+
+.quad-val .icon {
+  vertical-align: -0.15em;
+}
+
+.val-amber { color: var(--eliot-amber); }
+.val-cyan { color: var(--eliot-accent); }
+.val-green { color: var(--eliot-green); }
+
+/* Coluna direita ---------------------------------------------------------- */
+.right-pane {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.6cqw;
+  min-width: 0;
+}
+
+.net-indicators {
+  display: flex;
+  justify-content: flex-end;
+  gap: 2.2cqw;
+  font-size: 1.75cqw;
+  color: var(--eliot-accent);
+}
+
+.net-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6cqw;
+}
+
+.net-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5cqw;
+}
+
+.metric-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9cqw;
+  min-width: 0;
+}
+
+.metric-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1cqw;
+  min-width: 0;
+}
+
+.metric-title {
+  display: flex;
+  align-items: center;
+  gap: 1cqw;
+  font-size: 2.05cqw;
+  color: var(--eliot-text);
+}
+
+.hw-icon {
+  display: inline-flex;
+  font-size: 2.3cqw;
+  flex: 0 0 auto;
+}
+
+.metric-block:nth-of-type(1) .hw-icon { color: var(--eliot-accent); }
+.metric-block:nth-of-type(2) .hw-icon { color: var(--eliot-purple); }
+.metric-block:nth-of-type(3) .hw-icon { color: var(--eliot-accent); }
+
+.metric-percent {
+  font-size: 3.1cqw;
+  color: var(--eliot-accent);
+}
+
+.pixel-meter {
+  width: 100%;
+  height: 1.3cqw;
+  background: color-mix(in srgb, var(--text) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--eliot-border) 80%, transparent);
+  overflow: hidden;
+}
+
+.meter-fill {
+  display: block;
+  width: 0%;
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.fill-cpu {
+  background: var(--eliot-green);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--eliot-green) 45%, transparent);
+}
+
+.fill-ram {
+  background: linear-gradient(90deg, var(--eliot-purple), var(--eliot-pink));
+  box-shadow: 0 0 6px color-mix(in srgb, var(--eliot-pink) 45%, transparent);
+}
+
+.hw-subtext {
+  display: flex;
+  align-items: center;
+  gap: 1cqw;
+  font-size: 1.6cqw;
+  color: var(--eliot-muted);
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sub-strong,
+.sub-muted {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sub-muted { color: var(--eliot-muted); }
+.sub-strong { color: var(--eliot-muted); }
+
+.gpu-status-line {
+  display: flex;
+  align-items: center;
+  gap: 1cqw;
+  font-size: 1.6cqw;
+  color: var(--eliot-muted);
+  min-width: 0;
+}
+
+.status-dot {
+  flex: 0 0 auto;
+  width: 1.25cqw;
+  height: 1.25cqw;
+  border-radius: 50%;
+  background: var(--eliot-accent);
+  box-shadow: 0 0 6px var(--eliot-accent);
+}
+
+.gpu-temp {
+  flex: 0 0 auto;
+  color: var(--eliot-text);
+}
+
+.gpu-model {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

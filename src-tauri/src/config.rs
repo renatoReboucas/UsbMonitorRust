@@ -25,7 +25,7 @@ pub struct AppConfig {
 impl Default for AppConfig {
     fn default() -> Self {
         Self {
-            display_template: "console".to_owned(),
+            display_template: "crt".to_owned(),
             palette: "mocha".to_owned(),
             brightness: 80,
             rotation: 0,
@@ -213,7 +213,7 @@ mod tests {
     #[test]
     fn legacy_theme_settings_fall_back_to_the_default_template() {
         let config: AppConfig = serde_json::from_str(r#"{"theme":"3.5inchTheme1"}"#).unwrap();
-        assert_eq!(config.display_template, "console");
+        assert_eq!(config.display_template, "crt");
     }
 
     #[test]

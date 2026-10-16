@@ -20,8 +20,13 @@
     "description": "Preto absoluto OLED (#000000), instrumentação neon com números de 40px e zero brilho residual."
   },
   {
-    "id": "console",
-    "name": "Console · verde fósforo",
+    "id": "crt",
+    "name": "CRT",
     "description": "Terminal retrô: relógio em fonte de matriz de pontos, cards de CPU, RAM e GPU com barras finas e faixa de temperatura e clima."
+  },
+  {
+    "id": "eliot",
+    "name": "Pixel Eliot · Retrô 3,5″",
+    "description": "Pixel art fiel ao hardware Turing 3,5″: relógio hero matricial, telemetria de CPU/RAM/GPU e quadrante 2×2 de temperatura, VRAM, umidade e clima."
   }
 ]
