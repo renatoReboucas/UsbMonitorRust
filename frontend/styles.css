@@ -249,6 +249,10 @@ main { max-width: 1660px; min-height: 100vh; margin-left: 248px; padding: 0 42px
 .live-metric-heading small { margin-top: 4px; color: var(--muted); font-size: 9px; }
 .live-pill { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 5px; color: var(--green); font-size: 8px; font-weight: 700; letter-spacing: .4px; }
 .live-pill i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; box-shadow: 0 0 7px currentColor; }
+/* Estado sem sinal: âmbar, sem brilho. Sem isto o indicador continuava verde
+   enquanto o texto dizia "SEM SINAL", contradizendo a informação. */
+.live-pill.is-stale { color: #f9c875; }
+.live-pill.is-stale i { box-shadow: none; }
 .live-metric-value { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 11px 0 8px; }
 .live-metric-value strong { color: var(--live-accent); font-size: clamp(25px, 2.4vw, 34px); font-weight: 650; line-height: 1; letter-spacing: -1px; }
 .live-metric-value>span { overflow: hidden; color: var(--muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
@@ -270,7 +274,10 @@ main { max-width: 1660px; min-height: 100vh; margin-left: 248px; padding: 0 42px
 .chart-actions { display: flex; align-items: center; gap: 9px; }
 .chart-live-tag { gap: 6px; }
 .chart-live-tag i { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 7px color-mix(in srgb, var(--green) 55%, transparent); }
-.chart-live-tag.is-paused i { background: #f9c875; box-shadow: none; }
+.chart-live-tag.is-paused i,
+.chart-live-tag.is-stale i { background: #f9c875; box-shadow: none; }
+.chart-live-tag.is-paused,
+.chart-live-tag.is-stale { color: #f9c875; }
 .chart-toggle { min-width: 82px; min-height: 32px; padding: 0 9px; }
 .chart-toggle[aria-pressed="true"] { border-color: color-mix(in srgb, var(--accent) 48%, var(--border)); color: var(--accent); }
 .chart-summary { margin: 12px 0 -5px; color: var(--muted); font-size: 10px; line-height: 1.5; }
@@ -367,7 +374,9 @@ footer span { padding: 0 4px; color: var(--border); }
 .template-reference { background: radial-gradient(ellipse at 15% 45%, #184789, #071943 64%, #04112b); }
 .template-compact { background: radial-gradient(ellipse at top, #30264c, #11111b 75%); }
 .template-minimal { background: linear-gradient(135deg, #eff1f5, #ccd0da); }
-.template-console { background: radial-gradient(ellipse at 20% 20%, #14211a, #0a0c0b 70%); }
+.template-crt { background: radial-gradient(ellipse at 20% 20%, #14211a, #0a0c0b 70%); }
+.template-eliot { background: radial-gradient(circle at 25% 30%, #16203a, #0b0c10 72%); }
+.template-hud { background: radial-gradient(ellipse at 50% 0%, #00323a, #000000 72%); }
 .badge { position: absolute; top: 10px; right: 10px; padding: 5px 7px; border: 1px solid #ffffff26; border-radius: 6px; background: #11121dd9; color: #e5e5ee; font-size: 8px; font-weight: 650; letter-spacing: .4px; }
 .theme-card strong, .theme-card small { display: block; margin-right: 12px; margin-left: 12px; }
 .theme-card strong { margin-top: 12px; font-size: 11px; font-weight: 650; }

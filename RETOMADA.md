@@ -73,7 +73,7 @@ com os métodos recuperados, não como prova isolada do protocolo.
   (verde fósforo, definida no tema `console`), são paletas persistidas. Para
   adicionar um layout HTML, crie `<id>.html` em `frontend\displays` e inclua o
   ID e metadados em `templates.json`; `runtime.js` fornece os dados dinâmicos.
-  O tema `console` usa a fonte local `frontend\displays\fonts\doto.woff2` em
+  O tema `crt` usa a fonte local `frontend\displays\fonts\doto.woff2` em
   todos os textos para manter o visual de terminal sem depender de rede. Na
   captura para o display físico, `app.js` reescreve as URLs de fonte locais como
   data URI (para o `@font-face` resolver dentro do `foreignObject` do SVG) e

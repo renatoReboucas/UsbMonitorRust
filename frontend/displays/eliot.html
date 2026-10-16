@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=480, height=320, initial-scale=1.0" />
+    <title>UsbMonitor · eliot</title>
+    <link rel="stylesheet" href="./display-base.css" />
+    <link rel="stylesheet" href="./eliot.css" />
+    <script src="../icons.js" defer></script>
+    <script src="./runtime.js" defer></script>
+  </head>
+  <body class="pixel-body">
+    <main class="display display-eliot" id="display-root">
+      <!-- Coluna esquerda: perfil, relógio hero, clima e quadrante 2×2. -->
+      <section class="left-pane">
+        <div class="profile-header">
+          <span class="user-tag">&gt; Eliot</span>
+          <span class="version-tag">11 (26300)</span>
+        </div>
+
+        <div class="clock-wrap">
+          <time id="clock" class="digital-clock">--:--</time>
+        </div>
+
+        <div id="date" class="date-line">-- --- ----</div>
+        <div class="weather-brief">
+          <span id="weather-icon" class="weather-icon" data-lucide="cloud" aria-hidden="true"></span>
+          <span id="weather-temperature" class="weather-temp">—°C</span>
+          <span id="weather-city" class="weather-city">São Paulo</span>
+        </div>
+
+        <div class="quad-grid">
+          <div class="quad-cell">
+            <span class="quad-label">TEMP</span>
+            <span id="cpu-temp" class="quad-val val-amber">—°C</span>
+          </div>
+          <div class="quad-cell">
+            <span class="quad-label">VRAM</span>
+            <span id="vram" class="quad-val val-cyan">—</span>
+          </div>
+          <div class="quad-cell">
+            <span class="quad-label">UMIDADE</span>
+            <span id="weather-humidity" class="quad-val val-green">—%</span>
+          </div>
+          <div class="quad-cell">
+            <span class="quad-label">CLIMA</span>
+            <span class="quad-val val-cyan">
+              <span id="weather-high">—°</span>
+              <span id="weather-low">—°</span>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Coluna direita: telemetria de hardware. -->
+      <section class="right-pane">
+        <div class="net-indicators">
+          <span class="net-item"><span id="upload" class="net-value">—</span> /s</span>
+          <span class="net-item"><span id="download" class="net-value">—</span> /s</span>
+        </div>
+
+        <article class="metric-block">
+          <div class="metric-top">
+            <div class="metric-title">
+              <span class="hw-icon" data-lucide="cpu" aria-hidden="true"></span>
+              <span>CPU</span>
+            </div>
+            <div id="cpu-usage" class="metric-percent">—</div>
+          </div>
+          <div class="pixel-meter">
+            <span id="cpu-meter" class="meter-fill fill-cpu"></span>
+          </div>
+          <div class="hw-subtext">
+            <span id="cpu-frequency">—</span>
+            <span id="cpu-name" class="sub-strong">Processador</span>
+          </div>
+        </article>
+
+        <article class="metric-block">
+          <div class="metric-top">
+            <div class="metric-title">
+              <span class="hw-icon" data-lucide="memory-stick" aria-hidden="true"></span>
+              <span>RAM</span>
+            </div>
+            <div id="ram-usage" class="metric-percent">—</div>
+          </div>
+          <div class="pixel-meter">
+            <span id="ram-meter" class="meter-fill fill-ram"></span>
+          </div>
+          <div class="hw-subtext">
+            <span id="ram-total">—</span>
+            <span id="ram-name" class="sub-muted">Memória do sistema</span>
+          </div>
+        </article>
+
+        <article class="metric-block">
+          <div class="metric-top">
+            <div class="metric-title">
+              <span class="hw-icon" data-lucide="microchip" aria-hidden="true"></span>
+              <span>GPU</span>
+            </div>
+            <div id="gpu-usage" class="metric-percent">—</div>
+          </div>
+          <div class="gpu-status-line">
+            <span class="status-dot"></span>
+            <span id="gpu-temperature" class="gpu-temp">—°C</span>
+            <span id="gpu-name" class="gpu-model">GPU indisponível</span>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

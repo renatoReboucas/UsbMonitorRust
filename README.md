@@ -85,7 +85,7 @@ validação antes de serem salvos.
 | `startWithWindows` | inicia o aplicativo ao entrar na conta |
 | `refreshIntervalSecs` | intervalo de envio ao display: 3, 5, 10, 15, 30 ou 60 segundos |
 
-O layout padrão é o `console`, e a paleta padrão é `mocha`.
+O layout padrão é o `crt`, e a paleta padrão é `mocha`.
 
 ### Temperatura da CPU
 
@@ -243,7 +243,7 @@ hífen.
 No frontend não há gerenciador de pacotes nem etapa de build: os arquivos são
 consumidos como estão. Os ícones do Lucide (`lucide-static` 0.460.0) estão
 embutidos em `frontend/icons.js`, e as fontes VT323 e Press Start 2P (desktop) e
-Doto (layout `console`) são arquivos WOFF2 locais, para o aplicativo funcionar
+Doto (layout `crt`) são arquivos WOFF2 locais, para o aplicativo funcionar
 sem rede.
 
 ## Observações Importantes

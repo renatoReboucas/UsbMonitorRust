@@ -45,7 +45,7 @@ const $ = (selector) => document.querySelector(selector);
 const historySamples = [];
 const metricNames = { cpu: "", gpu: "" };
 const defaults = {
-  displayTemplate: "console",
+  displayTemplate: "crt",
   brightness: 80,
   rotation: 0,
   mirror: false,
