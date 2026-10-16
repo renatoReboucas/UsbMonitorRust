@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>UsbMonitor · crt-grid</title>
+    <link rel="stylesheet" href="./display-base.css" />
+    <link rel="stylesheet" href="./crt-grid.css" />
+    <script src="../icons.js" defer></script>
+    <script src="./runtime.js" defer></script>
+  </head>
+  <body>
+    <main class="display">
+      <header class="console-header">
+        <div class="console-brand">
+          <span class="brand-mark" data-lucide="terminal" aria-hidden="true"></span>
+          <div class="brand-text">
+            <b id="computer">Este computador</b>
+            <small id="os">Windows</small>
+          </div>
+        </div>
+        <div class="console-net">
+          <div class="net-group">
+            <b id="upload" class="net-value net-upload">—</b>
+            <small class="net-unit">/s</small>
+          </div>
+          <div class="net-group">
+            <b id="download" class="net-value net-down">—</b>
+            <small class="net-unit">/s</small>
+          </div>
+        </div>
+      </header>
+
+      <section class="side">
+        <section class="hero" aria-label="Relógio e clima">
+          <time id="clock" class="hero-clock">--:--</time>
+          <div class="hero-meta">
+            <span id="date" class="hero-date">-- --- ----</span>
+          </div>
+          <div class="hero-weather">
+            <span id="weather-icon" class="weather-icon" data-lucide="cloud" aria-hidden="true"></span>
+            <b id="weather-temperature" class="weather-temp">—°C</b>
+            <span id="weather-city" class="weather-city">São Paulo</span>
+          </div>
+        </section>
+
+        <section class="status" aria-label="Temperatura, memória de vídeo e clima">
+          <div class="status-card status-temp">
+            <span class="status-label">TEMP</span>
+            <b id="cpu-temp" class="status-value">—°C</b>
+          </div>
+          <div class="status-card status-vram">
+            <span class="status-label">VRAM</span>
+            <b id="vram" class="status-value">—</b>
+          </div>
+          <div class="status-card status-humid">
+            <span class="status-label">UMIDADE</span>
+            <b id="weather-humidity-value" class="status-value">—%</b>
+          </div>
+          <div class="status-card status-clima">
+            <span class="status-label">CLIMA</span>
+            <b class="status-value"><span id="weather-high">—°</span> <span id="weather-low">—°</span></b>
+          </div>
+        </section>
+      </section>
+
+      <section class="cards" aria-label="Carga de CPU, memória e GPU">
+        <article class="card card-cpu">
+          <div class="card-head">
+            <span class="card-icon" data-lucide="cpu" aria-hidden="true"></span>
+            <span class="card-label">CPU</span>
+            <b id="cpu-usage" class="card-value">—</b>
+          </div>
+          <div class="meter"><span id="cpu-meter" class="meter-fill"></span></div>
+          <div class="card-foot">
+            <small id="cpu-frequency" class="card-spec">—</small>
+            <span id="cpu-name" class="card-name">Processador</span>
+          </div>
+        </article>
+
+        <article class="card card-ram">
+          <div class="card-head">
+            <span class="card-icon" data-lucide="memory-stick" aria-hidden="true"></span>
+            <span class="card-label">RAM</span>
+            <b id="ram-usage" class="card-value">—</b>
+          </div>
+          <div class="meter"><span id="ram-meter" class="meter-fill"></span></div>
+          <div class="card-foot">
+            <small id="ram-total" class="card-spec">—</small>
+            <span id="ram-name" class="card-name">Memória do sistema</span>
+          </div>
+        </article>
+
+        <article class="card card-gpu">
+          <div class="card-head">
+            <span class="card-icon" data-lucide="microchip" aria-hidden="true"></span>
+            <span class="card-label">GPU</span>
+            <b id="gpu-usage" class="card-value">—</b>
+          </div>
+          <div class="meter"><span id="gpu-meter" class="meter-fill"></span></div>
+          <div class="card-foot">
+            <small id="gpu-temperature" class="card-spec">—</small>
+            <span id="gpu-name" class="card-name">GPU indisponível</span>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

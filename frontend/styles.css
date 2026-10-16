@@ -375,6 +375,7 @@ footer span { padding: 0 4px; color: var(--border); }
 .template-compact { background: radial-gradient(ellipse at top, #30264c, #11111b 75%); }
 .template-minimal { background: linear-gradient(135deg, #eff1f5, #ccd0da); }
 .template-crt { background: radial-gradient(ellipse at 20% 20%, #14211a, #0a0c0b 70%); }
+.template-crt-grid { background-image: radial-gradient(#1d2b22 1px, transparent 1px), radial-gradient(ellipse at 20% 20%, #14211a, #0a0c0b 70%); background-size: 6px 6px, auto; }
 .template-eliot { background: radial-gradient(circle at 25% 30%, #16203a, #0b0c10 72%); }
 .template-hud { background: radial-gradient(ellipse at 50% 0%, #00323a, #000000 72%); }
 .template-hud-matrix { background: radial-gradient(circle at 72% 18%, #10303a, #05070d 74%); }

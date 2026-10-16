@@ -36,6 +36,12 @@
     "category": "pixel"
   },
   {
+    "id": "crt-grid",
+    "name": "CRT Grid · verde fósforo",
+    "description": "O mesmo terminal CRT, com fundo em grade de pontos sobre a cor base da paleta — acompanha o tema escolhido no app.",
+    "category": "pixel"
+  },
+  {
     "id": "eliot",
     "name": "Pixel Eliot · Retrô 3,5″",
     "description": "Pixel art fiel ao hardware Turing 3,5″: relógio hero matricial, telemetria de CPU/RAM/GPU e quadrante 2×2 de temperatura, VRAM, umidade e clima.",

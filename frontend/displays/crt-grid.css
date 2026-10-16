@@ -1,0 +1,340 @@
+/* Paleta + arranjo do layout crt-grid: o mesmo terminal verde fósforo do crt,
+ * com o fundo em grade de pontos do layout eliot (cor base da paleta + pontos
+ * de 1px a cada 8px, seguindo --text). Como no crt, as cores de :root são só o
+ * ponto de partida: o runtime.js injeta a paleta escolhida no app. */
+
+/* Fonte local — o display roda offline, então tudo fica no repositório. */
+@font-face {
+  font-family: "Doto";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: block;
+  src: url("./fonts/doto.woff2") format("woff2-variations");
+}
+
+:root {
+  --base: #0a0c0b;
+  --surface: #111513;
+  --surface-raised: #171c19;
+  --border: #232a26;
+  --text: #e8ece9;
+  --text-dim: #c3cbc6;
+  --muted: #7f8b83;
+  --accent: #4ade80;
+  --cpu: #4ade80;
+  --ram: #c084fc;
+  --gpu: #3b82f6;
+  --warm: #fbbf24;
+  --net-up: #4ade80;
+  --net-down: #3b82f6;
+}
+
+html,
+body {
+  background-color: var(--base);
+  background-image: radial-gradient(color-mix(in srgb, var(--text) 7%, transparent) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+.display {
+  font-family: "Doto", "OCR A Extended", "Consolas", monospace;
+  font-weight: 600;
+  grid-template-columns: 1fr 1.08fr;
+  grid-template-rows: 32px 1fr;
+  grid-template-areas:
+    "head head"
+    "side cards";
+}
+
+/* Cabeçalho: host, sistema operacional e rede ----------------------------- */
+.console-header {
+  grid-area: head;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-width: 0;
+}
+
+.console-brand {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  flex: 0 0 auto;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.brand-text b {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.brand-text small {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.console-net {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+.net-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.net-value {
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.net-unit {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Coluna esquerda: relógio e faixa de status ------------------------------ */
+.side {
+  grid-area: side;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: var(--space-2);
+  min-width: 0;
+  min-height: 0;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-width: 0;
+  min-height: 0;
+  /* O relógio se dimensiona pela largura desta coluna, não pela viewport: a
+     prévia e o quadro serial têm sempre 480 px, então `vw` crescia além do
+     cartão e o horário vazava da moldura. */
+  container-type: inline-size;
+  overflow: hidden;
+}
+
+.hero-clock {
+  font-size: clamp(24px, 25cqw, 48px);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.hero-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.hero-date {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.hero-weather {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+  min-width: 0;
+}
+
+.hero-weather .weather-temp {
+  font-size: 15px;
+}
+
+.hero-weather .weather-city {
+  flex: 0 1 auto;
+}
+
+/* Faixa de status em 2 × 2 ------------------------------------------------- */
+.status {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  min-height: 0;
+}
+
+.status-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.status-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.status-value {
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.status-temp .status-value { color: var(--warm); }
+.status-vram .status-value { color: var(--gpu); }
+.status-humid .status-value { color: var(--cpu); }
+.status-clima .status-value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+/* Cards de CPU, RAM e GPU ------------------------------------------------- */
+.cards {
+  grid-area: cards;
+  display: grid;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  min-height: 0;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 5px;
+  padding: 8px 11px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.card-cpu { --tone: var(--cpu); }
+.card-ram { --tone: var(--ram); }
+.card-gpu { --tone: var(--gpu); }
+
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.card-icon {
+  display: flex;
+  color: var(--tone);
+  flex: 0 0 auto;
+}
+
+.card-icon svg {
+  width: 17px;
+  height: 17px;
+  display: block;
+}
+
+.card-label {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.card-value {
+  margin-left: auto;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--tone);
+}
+
+.card .meter {
+  height: 8px;
+  background: color-mix(in srgb, var(--text) 14%, transparent);
+}
+
+.card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+}
+
+.card-spec {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.card-name {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
